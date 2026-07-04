@@ -1,0 +1,5745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1677ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="个税助手">
+  <!-- 内嵌 manifest（PWA安装到桌面） -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"个税申报助手","short_name":"个税助手","description":"个人所得税专项附加扣除填报指引","start_url":"./","display":"standalone","orientation":"portrait","background_color":"#f5f6fa","theme_color":"#1677ff","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 192 192%22%3E%3Crect width=%22192%22 height=%22192%22 rx=%2240%22 fill=%22%231677ff%22/%3E%3Ctext x=%2296%22 y=%22128%22 font-size=%22100%22 text-anchor=%22middle%22 fill=%22white%22%3E税%3C/text%3E%3C/svg%3E","sizes":"192x192","type":"image/svg+xml"},{"src":"data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 512 512%22%3E%3Crect width=%22512%22 height=%22512%22 rx=%22100%22 fill=%22%231677ff%22/%3E%3Ctext x=%22256%22 y=%22340%22 font-size=%22260%22 text-anchor=%22middle%22 fill=%22white%22%3E税%3C/text%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}'>
+  <!-- 内嵌 SVG 图标 -->
+  <link rel="apple-touch-icon" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" rx="40" fill="%231677ff"/%3E%3Ctext x="96" y="128" font-size="100" text-anchor="middle" fill="white"%3E税%3C/text%3E%3C/svg%3E'>
+  <link rel="icon" type="image/svg+xml" href='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"%3E%3Crect width="192" height="192" rx="40" fill="%231677ff"/%3E%3Ctext x="96" y="128" font-size="100" text-anchor="middle" fill="white"%3E税%3C/text%3E%3C/svg%3E'>
+  <style>
+/* ===== 全局变量与重置 ===== */
+:root {
+  --primary: #1677ff;
+  --primary-light: #4096ff;
+  --primary-dark: #0958d9;
+  --primary-bg: #e6f0ff;
+  --success: #52c41a;
+  --success-bg: #f0f9eb;
+  --warning: #faad14;
+  --warning-bg: #fffbe6;
+  --error: #ff4d4f;
+  --error-bg: #fff2f0;
+  --text-primary: #1a1a1a;
+  --text-secondary: #666;
+  --text-tertiary: #999;
+  --bg-page: #f5f6fa;
+  --bg-card: #ffffff;
+  --border: #e8e8e8;
+  --border-light: #f0f0f0;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.1);
+  --header-h: 56px;
+  --nav-h: 56px;
+  --max-w: 480px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+#app {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ===== 顶部导航 ===== */
+.app-header {
+  height: var(--header-h);
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(22, 119, 255, 0.2);
+}
+
+.header-back {
+  background: none;
+  border: none;
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 40px 0 40px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-spacer { width: 40px; }
+
+/* ===== 主内容区 ===== */
+.app-content {
+  flex: 1;
+  padding-bottom: calc(var(--nav-h) + 16px);
+  overflow-y: auto;
+}
+
+/* ===== 底部导航 ===== */
+.app-nav {
+  height: var(--nav-h);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-w);
+  z-index: 100;
+}
+
+.nav-item {
+  flex: 1;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--text-tertiary);
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 6px 0;
+  transition: color 0.2s;
+}
+
+.nav-item.active {
+  color: var(--primary);
+}
+
+.nav-item span { font-size: 0.7rem; }
+
+/* ===== 加载遮罩 ===== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-page);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  gap: 16px;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.toast.show { opacity: 1; }
+
+/* ===== 首页 ===== */
+.home-container {
+  padding: 16px;
+}
+
+.hero-section {
+  text-align: center;
+  padding: 32px 16px 24px;
+}
+
+.hero-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 2rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 4px 16px rgba(22, 119, 255, 0.3);
+}
+
+.hero-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.hero-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.action-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.action-card:active {
+  transform: scale(0.98);
+}
+
+.action-card.primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border: none;
+  color: #fff;
+}
+
+.action-card.primary .action-text h3,
+.action-card.primary .action-text p {
+  color: #fff;
+}
+
+.action-icon {
+  font-size: 1.8rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.action-text { flex: 1; }
+
+.action-text h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.action-text p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.action-arrow {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.action-card.primary .action-arrow { color: rgba(255,255,255,0.8); }
+
+.home-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 16px 0;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.feature-check {
+  color: var(--success);
+  font-weight: bold;
+}
+
+.home-policy-note {
+  background: var(--primary-bg);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  text-align: center;
+  color: var(--primary);
+  font-size: 0.85rem;
+}
+
+/* ===== 问卷 ===== */
+.survey-container {
+  padding: 16px;
+}
+
+.survey-progress-bar {
+  position: relative;
+  height: 28px;
+  background: var(--border-light);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: 14px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.survey-section {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  box-shadow: var(--shadow);
+}
+
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--text-primary);
+}
+
+.question {
+  margin-bottom: 20px;
+}
+
+.question.error {
+  animation: shake 0.3s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.q-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+
+.required {
+  color: var(--error);
+  margin-left: 2px;
+}
+
+.q-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg-page);
+}
+
+.input-group:focus-within {
+  border-color: var(--primary);
+  background: var(--bg-card);
+}
+
+.q-input {
+  flex: 1;
+  border: none;
+  padding: 12px;
+  font-size: 0.95rem;
+  background: transparent;
+  outline: none;
+  color: var(--text-primary);
+}
+
+.input-suffix {
+  padding: 0 12px;
+  color: var(--text-tertiary);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* summary 合计字段样式 */
+.summary-field {
+  margin-top: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--primary-bg), var(--primary-bg-light, #f0f7ff));
+  border: 1px solid var(--primary-light, #b3d9ff);
+  border-radius: var(--radius-md, 10px);
+}
+
+.summary-field .q-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary, #1677ff);
+}
+
+.summary-breakdown {
+  margin: 10px 0;
+}
+
+.summary-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  border-bottom: 1px dashed var(--border-light, #e8e8e8);
+}
+
+.summary-breakdown-row.empty {
+  color: var(--text-tertiary);
+  justify-content: center;
+  font-style: italic;
+}
+
+.summary-amount {
+  font-weight: 500;
+}
+
+.summary-cap {
+  font-size: 0.75rem;
+  color: var(--warning, #fa8c16);
+  margin-left: 4px;
+}
+
+.summary-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 2px solid var(--primary, #1677ff);
+}
+
+.summary-total-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.summary-total-value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--primary, #1677ff);
+}
+
+.q-select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: 0.95rem;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  outline: none;
+  appearance: auto;
+}
+
+.q-select:focus {
+  border-color: var(--primary);
+  background: var(--bg-card);
+}
+
+.q-date {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-page);
+}
+
+.boolean-group {
+  display: flex;
+  gap: 12px;
+}
+
+.bool-btn {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bool-btn.active {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radio-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.radio-item.checked {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+}
+
+.radio-item input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary);
+}
+
+.radio-label {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+/* 动态列表 */
+.dynamic-list .btn-add {
+  margin-top: 8px;
+  width: 100%;
+  border: 2px dashed var(--border);
+  padding: 10px;
+  color: var(--primary);
+  background: var(--bg-card);
+}
+
+.list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.list-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: var(--bg-page);
+}
+
+.list-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: var(--error);
+  font-size: 1.3rem;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.q-date-sm, .q-select-sm {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.survey-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.survey-actions .btn { flex: 1; }
+
+/* ===== 按钮 ===== */
+.btn {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: var(--bg-page);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.btn-lg {
+  padding: 14px 24px;
+  font-size: 1rem;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* ===== 报告页面 ===== */
+.report-container {
+  padding: 16px;
+}
+
+.report-header {
+  text-align: center;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 16px;
+}
+
+.report-header h1 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.report-date {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.report-meta {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.report-section {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+.report-section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding-left: 12px;
+  border-left: 3px solid var(--primary);
+  color: var(--text-primary);
+}
+
+.section-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.summary-card {
+  text-align: center;
+  padding: 12px 4px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-page);
+}
+
+.summary-card.highlight {
+  background: var(--primary-bg);
+}
+
+.summary-card.positive {
+  background: var(--success-bg);
+}
+
+.summary-card.negative {
+  background: var(--error-bg);
+}
+
+.card-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.summary-card.highlight .card-value { color: var(--primary); }
+.summary-card.positive .card-value { color: var(--success); }
+.summary-card.negative .card-value { color: var(--error); }
+
+.card-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.report-table th {
+  background: var(--bg-page);
+  padding: 10px;
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.report-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.report-table tfoot td {
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+}
+
+/* 税额明细框 */
+.tax-detail-box {
+  margin-top: 16px;
+  padding: 14px;
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+}
+
+.tax-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: 5px 0;
+}
+
+.tax-detail-row span:first-child {
+  color: var(--text-tertiary);
+}
+
+.tax-detail-row.total {
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+  padding-top: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.tax-detail-row.refund .tax-amount,
+.tax-detail-row.refund .refund-amount {
+  color: var(--success);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.tax-detail-row.pay .pay-amount {
+  color: var(--error);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.tax-amount {
+  color: var(--primary);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.not-eligible-row { color: var(--text-tertiary); }
+
+.status-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-tag.eligible {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.status-tag.not-eligible {
+  background: var(--border-light);
+  color: var(--text-tertiary);
+}
+
+/* 年终奖对比 */
+.bonus-compare {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.bonus-card {
+  flex: 1;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.bonus-card.recommended {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-bg);
+}
+
+.bonus-card-header {
+  padding: 10px 12px;
+  background: var(--bg-page);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bonus-card.recommended .bonus-card-header {
+  background: var(--primary-bg);
+}
+
+.bonus-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.recommend-badge {
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.bonus-card-body {
+  padding: 12px;
+}
+
+.bonus-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding: 4px 0;
+}
+
+.bonus-detail-row.total {
+  border-top: 1px solid var(--border-light);
+  margin-top: 6px;
+  padding-top: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.bonus-total {
+  color: var(--primary);
+  font-size: 1.05rem;
+}
+
+.bonus-vs {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+.bonus-savings {
+  background: var(--success-bg);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.bonus-savings.neutral {
+  background: var(--bg-page);
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.bonus-savings strong {
+  color: var(--success);
+  font-size: 1.1rem;
+}
+
+.trap-warning {
+  display: flex;
+  gap: 12px;
+  background: var(--error-bg);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin: 12px 0;
+}
+
+.trap-icon { font-size: 1.5rem; flex-shrink: 0; }
+
+.trap-content strong {
+  color: var(--error);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.trap-content p {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.trap-suggestion {
+  color: var(--primary) !important;
+  font-weight: 500;
+}
+
+.bonus-analysis {
+  background: var(--primary-bg);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.bonus-analysis p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.bonus-operation {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+}
+
+.operation-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.bonus-operation p:last-child {
+  font-size: 0.85rem;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* 扣除项卡片 */
+.deduction-card {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.deduction-header {
+  padding: 12px;
+  background: var(--bg-page);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.deduction-header h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.amount-badge {
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.75rem;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.deduction-body { padding: 12px; }
+
+.deduction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.info-row {
+  display: flex;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.info-label {
+  color: var(--text-tertiary);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.deduction-tips {
+  background: var(--warning-bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.tips-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--warning);
+  margin-bottom: 6px;
+}
+
+.deduction-tips ul {
+  list-style: none;
+  padding: 0;
+}
+
+.deduction-tips li {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.deduction-tips li::before {
+  content: '•';
+  position: absolute;
+  left: 4px;
+  color: var(--warning);
+}
+
+/* 风险提示 */
+.error-section { border: 1px solid var(--error-bg); }
+
+.error-group { margin-bottom: 16px; }
+
+.error-group-title {
+  font-size: 0.9rem;
+  color: var(--error);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.warning-title { color: var(--warning); }
+
+.error-item {
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.error-item.error {
+  background: var(--error-bg);
+  border-left: 3px solid var(--error);
+}
+
+.error-item.warning {
+  background: var(--warning-bg);
+  border-left: 3px solid var(--warning);
+}
+
+.error-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.error-title {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+}
+
+.error-category {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  background: var(--bg-card);
+  padding: 1px 8px;
+  border-radius: 8px;
+}
+
+.error-message {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.error-solution {
+  font-size: 0.8rem;
+  color: var(--primary);
+}
+
+.no-error-section {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.no-error-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+/* 操作指引 */
+.guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guide-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-content { flex: 1; }
+
+.step-content strong {
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.step-content p {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* 免责声明 */
+.disclaimer {
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  line-height: 1.6;
+}
+
+/* 报告操作 */
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.install-hint {
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fffbe6, #fff7e6);
+  border: 1px solid #ffe58f;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #8c6e2e;
+  text-align: center;
+}
+
+.install-btn {
+  background: linear-gradient(135deg, #52c41a, #389e0d) !important;
+  color: white !important;
+  border: none !important;
+  margin-bottom: 16px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+/* ===== 计算器页面 ===== */
+.calculator-page {
+  padding: 16px;
+}
+
+.calc-intro {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.calc-intro h2 {
+  font-size: 1.2rem;
+  margin-bottom: 6px;
+}
+
+.calc-intro p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.calc-form {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.calc-input-group {
+  margin-bottom: 16px;
+}
+
+.calc-input-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.input-with-prefix {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-page);
+  overflow: hidden;
+}
+
+.input-with-prefix:focus-within {
+  border-color: var(--primary);
+}
+
+.input-with-prefix input {
+  flex: 1;
+  border: none;
+  padding: 12px;
+  font-size: 1rem;
+  background: transparent;
+  outline: none;
+}
+
+.input-with-prefix .prefix {
+  padding: 0 8px 0 12px;
+  color: var(--text-tertiary);
+  font-size: 0.95rem;
+}
+
+.calc-hint {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.calc-result {
+  margin-top: 20px;
+}
+
+/* ===== 政策页面 ===== */
+.policy-page {
+  padding: 16px;
+}
+
+.policy-intro {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.policy-intro h2 {
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+}
+
+.policy-intro p {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+}
+
+.policy-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+}
+
+.policy-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.policy-card-header h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.policy-amount {
+  background: var(--primary-bg);
+  color: var(--primary);
+  font-size: 0.75rem;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.policy-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.policy-details {
+  border-top: 1px solid var(--border-light);
+  padding-top: 10px;
+}
+
+.policy-detail-row {
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.detail-label {
+  color: var(--text-tertiary);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.policy-detail-row ul {
+  margin-left: 16px;
+  color: var(--text-secondary);
+}
+
+.policy-detail-row li {
+  margin-bottom: 2px;
+}
+
+.policy-notice {
+  background: var(--primary-bg);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.policy-notice h3 {
+  font-size: 0.95rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.policy-notice p {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ===== 打印样式 ===== */
+@media print {
+  .app-header, .app-nav, .report-actions, .loading-overlay, .toast {
+    display: none !important;
+  }
+
+  #app {
+    max-width: none;
+  }
+
+  .app-content {
+    padding: 0;
+  }
+
+  .report-container {
+    padding: 0;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 12px;
+  }
+
+  .report-section {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  .bonus-card {
+    break-inside: avoid;
+  }
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 360px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .home-features {
+    grid-template-columns: 1fr;
+  }
+
+  .bonus-compare {
+    flex-direction: column;
+  }
+
+  .bonus-vs {
+    text-align: center;
+    padding: 4px;
+  }
+}
+
+</style>
+  <title>个税填报助手</title>
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航栏 -->
+    <header class="app-header" id="appHeader">
+      <button class="header-back" id="btnBack" style="display:none;" aria-label="返回">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <h1 class="header-title" id="headerTitle">个税填报助手</h1>
+      <div class="header-spacer"></div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="app-content" id="appContent">
+      <!-- 页面动态渲染 -->
+    </main>
+
+    <!-- 底部导航栏 -->
+    <nav class="app-nav" id="appNav" style="display:none;">
+      <button class="nav-item active" data-page="home">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>首页</span>
+      </button>
+      <button class="nav-item" data-page="calculator">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 7h6m0 10v-3m-6 3h.01M9 14h6M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>计算器</span>
+      </button>
+      <button class="nav-item" data-page="policy">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>政策</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- 加载遮罩 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <p>正在加载政策数据...</p>
+  </div>
+
+  <script>
+/**
+ * data.js - 所有政策数据内嵌
+ * 消除 fetch 依赖，确保 file:// 协议下也能正常加载
+ */
+
+const TaxData = {
+
+  // ===== 7项专项附加扣除政策规则库 =====
+  deductions: [
+    {
+      id: "infant_care",
+      title: "3岁以下婴幼儿照护",
+      category: "子女",
+      monthlyAmount: 2000,
+      monthlyAmountPerChild: true,
+      annualLimit: null,
+      allocationOptions: [
+        { value: "one_full", label: "一方全额扣除（100%）" },
+        { value: "each_half", label: "双方各扣50%" }
+      ],
+      period: { start: "出生当月", end: "年满3周岁前一月" },
+      conditions: [
+        "纳税人有3岁以下子女",
+        "子女出生当月至年满3周岁前"
+      ],
+      documents: ["子女出生医学证明", "子女人口信息"],
+      appPath: "专项附加扣除填报 → 3岁以下婴幼儿照护",
+      description: "照护3岁以下婴幼儿子女的支出，按每个婴幼儿每月2000元定额扣除。父母可选择一方全额扣除或双方各扣50%，一个纳税年度内不可变更。"
+    },
+    {
+      id: "child_education",
+      title: "子女教育",
+      category: "子女",
+      monthlyAmount: 2000,
+      monthlyAmountPerChild: true,
+      annualLimit: null,
+      allocationOptions: [
+        { value: "one_full", label: "一方全额扣除（100%）" },
+        { value: "each_half", label: "双方各扣50%" }
+      ],
+      period: { start: "入学当月", end: "教育结束当月" },
+      conditions: [
+        "子女接受全日制学历教育（幼儿园至博士）",
+        "入学当月至教育结束当月"
+      ],
+      documents: ["子女学籍信息", "子女身份证号"],
+      appPath: "专项附加扣除填报 → 子女教育",
+      description: "子女接受全日制学历教育的支出，按每个子女每月2000元定额扣除。覆盖幼儿园至博士阶段。父母可选择一方全额扣除或双方各扣50%，一个纳税年度内不可变更。"
+    },
+    {
+      id: "elderly_care",
+      title: "赡养老人",
+      category: "赡养",
+      monthlyAmount: 3000,
+      monthlyAmountPerChild: false,
+      annualLimit: null,
+      allocationOptions: [
+        { value: "only_child", label: "独生子女全额扣除（3000元/月）" },
+        { value: "shared", label: "非独生子女分摊（每人最多1500元/月）" }
+      ],
+      period: { start: "父母年满60周岁当月", end: "父母去世次月" },
+      conditions: [
+        "被赡养人为年满60周岁的父母",
+        "或子女均已去世的年满60周岁的祖父母/外祖父母",
+        "非独生子女需与兄弟姐妹分摊，每人每月不超过1500元",
+        "需签订书面分摊协议"
+      ],
+      documents: ["被赡养人身份证信息", "非独生子女需提供分摊协议"],
+      appPath: "专项附加扣除填报 → 赡养老人",
+      description: "赡养年满60周岁父母的支出，独生子女每月扣除3000元；非独生子女分摊3000元额度，每人每月最多1500元，需签订书面分摊协议。注意：岳父母、公婆不符合条件。"
+    },
+    {
+      id: "housing_loan",
+      title: "住房贷款利息",
+      category: "住房",
+      monthlyAmount: 1000,
+      monthlyAmountPerChild: false,
+      annualLimit: 12000,
+      allocationOptions: [
+        { value: "one_full", label: "夫妻一方全额扣除（1000元/月）" }
+      ],
+      period: { start: "贷款合同约定开始还款当月", end: "贷款还清或满240个月" },
+      conditions: [
+        "纳税人本人或配偶单独/共同购买住房",
+        "该住房为首套住房贷款（利率执行首套房贷利率）",
+        "贷款实际发生且在还款期内",
+        "扣除期限最长240个月",
+        "一生只能享受一次首套房贷利息扣除"
+      ],
+      documents: ["住房贷款合同", "贷款还款支出凭证"],
+      appPath: "专项附加扣除填报 → 住房贷款利息",
+      description: "首套住房贷款利息支出，每月扣除1000元，最长扣除240个月。夫妻仅可选择一方扣除。一生仅限享受一次首套房贷利息扣除，卖房后再次购房不可重复享受。"
+    },
+    {
+      id: "housing_rent",
+      title: "住房租金",
+      category: "住房",
+      monthlyAmount: null,
+      monthlyAmountPerChild: false,
+      annualLimit: null,
+      allocationTiers: [
+        { tier: 1, amount: 1500, label: "直辖市、省会城市、计划单列市及国务院确定的其他城市" },
+        { tier: 2, amount: 1100, label: "户籍人口超过100万的城市" },
+        { tier: 3, amount: 800, label: "户籍人口不超过100万的城市" }
+      ],
+      allocationOptions: [
+        { value: "one_full", label: "夫妻一方扣除（同城市仅一方）" }
+      ],
+      period: { start: "租赁合同约定起租当月", end: "租赁结束当月" },
+      conditions: [
+        "纳税人在主要工作城市没有自有住房",
+        "实际发生租房支出",
+        "夫妻双方主要工作城市相同的，仅一方可扣除",
+        "与住房贷款利息不可同时享受"
+      ],
+      documents: ["住房租赁合同", "出租方信息"],
+      appPath: "专项附加扣除填报 → 住房租金",
+      description: "在主要工作城市没有自有住房而发生的租房支出，按城市分三档扣除（1500/1100/800元每月）。夫妻同城市仅一方可扣除。注意：不可与住房贷款利息同时享受。"
+    },
+    {
+      id: "continuing_education",
+      title: "继续教育",
+      category: "教育",
+      monthlyAmount: 400,
+      monthlyAmountPerChild: false,
+      annualLimit: null,
+      subTypes: [
+        {
+          id: "degree_education",
+          label: "学历（学位）继续教育",
+          monthlyAmount: 400,
+          maxMonths: 48,
+          description: "在中国境内接受的学历（学位）继续教育，每月400元，最长48个月"
+        },
+        {
+          id: "vocational_cert",
+          label: "职业资格继续教育",
+          annualAmount: 3600,
+          description: "取得《国家职业资格目录》内证书的当年，一次性扣除3600元"
+        }
+      ],
+      period: { start: "入学当月/取得证书当月", end: "毕业当月/取得证书当年12月" },
+      conditions: [
+        "学历继续教育：在中国境内接受，最长48个月",
+        "职业资格继续教育：须为《国家职业资格目录》内证书",
+        "国外学历教育或国外证书不符合条件",
+        "职业资格证书后续年度的培训、年审不属于扣除范围"
+      ],
+      documents: ["学历学籍信息", "职业资格证书信息"],
+      appPath: "专项附加扣除填报 → 继续教育",
+      description: "学历继续教育每月400元（最长48个月）；取得国家职业资格目录内证书当年一次性扣3600元。注意：国外证书、非目录内证书、兴趣爱好类培训不可扣除。"
+    },
+    {
+      id: "medical_expense",
+      title: "大病医疗",
+      category: "医疗",
+      monthlyAmount: null,
+      monthlyAmountPerChild: false,
+      annualLimit: 80000,
+      deductionThreshold: 15000,
+      allocationOptions: [
+        { value: "self", label: "本人扣除" },
+        { value: "spouse", label: "配偶扣除" },
+        { value: "parent", label: "父母一方扣除" }
+      ],
+      period: { start: "医疗费用发生年度", end: "汇算清缴期间" },
+      conditions: [
+        "医保目录范围内个人自付部分累计超过15000元",
+        "超出15000元的部分在80000元限额内据实扣除",
+        "含本人、配偶、未成年子女的医药费用",
+        "纳税人及配偶、未成年子女分别计算扣除额",
+        "可通过'国家医保服务平台'APP查询可扣除金额"
+      ],
+      documents: ["医疗服务收费票据", "医保结算单"],
+      appPath: "汇算清缴 → 大病医疗专项附加扣除",
+      description: "年度医保目录内自付部分累计超过15000元的部分，在80000元限额内据实扣除。可由本人、配偶或父母一方扣除。建议通过'国家医保服务平台'APP查询准确金额。"
+    }
+  ],
+
+  // ===== 年度税率表（7级累进） =====
+  taxRates: [
+    { level: 1, min: 0,      max: 36000,   rate: 0.03, quickDeduction: 0,     label: "≤3.6万" },
+    { level: 2, min: 36000,  max: 144000,  rate: 0.10, quickDeduction: 2520,   label: "3.6万-14.4万" },
+    { level: 3, min: 144000, max: 300000,  rate: 0.20, quickDeduction: 16920,  label: "14.4万-30万" },
+    { level: 4, min: 300000, max: 420000,  rate: 0.25, quickDeduction: 31920,  label: "30万-42万" },
+    { level: 5, min: 420000, max: 660000,  rate: 0.30, quickDeduction: 52920,  label: "42万-66万" },
+    { level: 6, min: 660000, max: 960000,  rate: 0.35, quickDeduction: 85920,  label: "66万-96万" },
+    { level: 7, min: 960000, max: null,    rate: 0.45, quickDeduction: 181920, label: ">96万" }
+  ],
+
+  // ===== 月度税率表（年终奖单独计税用） =====
+  monthlyTaxRates: [
+    { level: 1, min: 0,      max: 3000,    rate: 0.03, quickDeduction: 0,     label: "≤3000元/月" },
+    { level: 2, min: 3000,   max: 12000,  rate: 0.10, quickDeduction: 210,    label: "3000-12000元/月" },
+    { level: 3, min: 12000,  max: 25000,  rate: 0.20, quickDeduction: 1410,   label: "12000-25000元/月" },
+    { level: 4, min: 25000,  max: 35000,  rate: 0.25, quickDeduction: 2660,   label: "25000-35000元/月" },
+    { level: 5, min: 35000,  max: 55000,  rate: 0.30, quickDeduction: 4410,   label: "35000-55000元/月" },
+    { level: 6, min: 55000,  max: 80000,  rate: 0.35, quickDeduction: 7160,   label: "55000-80000元/月" },
+    { level: 7, min: 80000,  max: null,   rate: 0.45, quickDeduction: 15160,  label: ">80000元/月" }
+  ],
+
+  // ===== 城市分类（住房租金分档） =====
+  cities: {
+    tier1: [
+      "北京市", "上海市", "天津市", "重庆市",
+      "广州市", "深圳市", "杭州市", "南京市", "武汉市", "成都市", "西安市",
+      "沈阳市", "大连市", "青岛市", "宁波市", "厦门市",
+      "哈尔滨市", "长春市", "济南市", "郑州市", "长沙市", "合肥市", "南昌市",
+      "福州市", "昆明市", "贵阳市", "南宁市", "海口市", "兰州市", "西宁市",
+      "银川市", "乌鲁木齐市", "呼和浩特市", "太原市", "石家庄市", "拉萨市"
+    ],
+    tier2: ["苏州市", "温州市", "佛山市", "东莞市", "徐州市", "临沂市", "保定市", "南通市"],
+    tier3: ["泰州市", "盐城市", "扬州市", "镇江市", "连云港市", "其他"]
+  },
+
+  // ===== 14个易错点规则定义 =====
+  errorRules: [
+    {
+      id: "err_01",
+      title: "非独生子女赡养老人超限",
+      category: "赡养老人",
+      severity: "error",
+      message: "非独生子女每月赡养老人扣除不得超过1500元，兄弟姐妹合计不超过3000元。您当前填报金额超标，请调整分摊比例。",
+      solution: "与兄弟姐妹协商分摊比例，每人每月不超过1500元，并签订书面分摊协议。"
+    },
+    {
+      id: "err_02",
+      title: "夫妻扣除比例合计超100%",
+      category: "子女",
+      severity: "error",
+      message: "夫妻对同一子女/婴幼儿的扣除比例合计不能超过100%。一方100%或双方各50%，二选一。",
+      solution: "确认夫妻双方扣除比例合计为100%，在一个纳税年度内不可变更。"
+    },
+    {
+      id: "err_03",
+      title: "子女教育终止未及时更新",
+      category: "子女",
+      severity: "warning",
+      message: "子女毕业后不再接受全日制学历教育，应录入教育终止时间，不可继续享受子女教育扣除。",
+      solution: "在个税APP中修改子女教育扣除的终止月份为毕业当月。"
+    },
+    {
+      id: "err_04",
+      title: "房贷与租金同时扣除",
+      category: "住房",
+      severity: "error",
+      message: "住房贷款利息与住房租金不可同时享受，请二选一。",
+      solution: "根据实际情况选择更优惠的一项：有首套房贷选房贷利息（1000元/月），无自有住房选租金（800-1500元/月）。"
+    },
+    {
+      id: "err_05",
+      title: "赡养对象填写错误",
+      category: "赡养老人",
+      severity: "error",
+      message: "被赡养人仅限本人年满60周岁的父母，或子女均已去世的祖父母/外祖父母。岳父母、公婆不符合条件。",
+      solution: "删除岳父母/公婆信息，仅填报本人父母。配偶的父母由配偶自行填报。"
+    },
+    {
+      id: "err_06",
+      title: "非国家认可证书申报继续教育",
+      category: "继续教育",
+      severity: "error",
+      message: "仅取得《国家职业资格目录》内证书方可扣除。国外证书、非目录内证书（如茶艺师、保育员等）不符合条件。",
+      solution: "通过'国务院客户端'小程序搜索'国家职业资格目录'查询您的证书是否在列。"
+    },
+    {
+      id: "err_07",
+      title: "首套房贷重复扣除",
+      category: "住房",
+      severity: "error",
+      message: "纳税人一生只能享受一次首套住房贷款利息扣除。已享受过房贷利息扣除的，不得再次填报。",
+      solution: "如之前已申报过房贷利息扣除，即使卖房后再次购房也不可重复享受。"
+    },
+    {
+      id: "err_08",
+      title: "大病医疗含医保目录外费用",
+      category: "医疗",
+      severity: "error",
+      message: "大病医疗仅扣除医保目录范围内的自付部分，不可包含目录外费用。",
+      solution: "通过'国家医保服务平台'APP查询年度费用汇总，获取准确的医保目录内自付金额。"
+    },
+    {
+      id: "err_09",
+      title: "学历继续教育超48个月",
+      category: "继续教育",
+      severity: "warning",
+      message: "学历继续教育扣除期限最长48个月，超期不可继续扣除。不同学历阶段的48个月可分别计算。",
+      solution: "确认入学至毕业的实际月数，如超48个月需在个税APP中调整扣除终止月份。"
+    },
+    {
+      id: "err_10",
+      title: "租金扣除城市与工作城市不符",
+      category: "住房",
+      severity: "warning",
+      message: "住房租金应在主要工作城市发生，扣除标准按工作城市分档。",
+      solution: "确认租金扣除城市与主要工作城市一致。如异地工作租房，以工作城市为准。"
+    },
+    {
+      id: "err_11",
+      title: "婴幼儿满3岁未转为子女教育",
+      category: "子女",
+      severity: "warning",
+      message: "子女年满3周岁后，应从婴幼儿照护转为子女教育扣除，不可继续按婴幼儿照护填报。",
+      solution: "在个税APP中停止婴幼儿照护扣除，新增子女教育扣除（入园/入学当月起）。"
+    },
+    {
+      id: "err_12",
+      title: "夫妻同时填报同一房贷",
+      category: "住房",
+      severity: "error",
+      message: "住房贷款利息仅可由夫妻一方扣除，不可双方同时填报同一套住房。",
+      solution: "夫妻协商确定由一方扣除（1000元/月），另一方在APP中作废该扣除记录。"
+    },
+    {
+      id: "err_13",
+      title: "赡养老人分摊无协议",
+      category: "赡养老人",
+      severity: "warning",
+      message: "非独生子女分摊赡养老人扣除需签订书面分摊协议，且兄弟姐妹分摊比例须一致。",
+      solution: "与兄弟姐妹签订书面分摊协议，明确各自分摊比例（每人不超过1500元/月），三方留存备查。"
+    },
+    {
+      id: "err_14",
+      title: "兴趣爱好证书申报继续教育",
+      category: "继续教育",
+      severity: "error",
+      message: "兴趣爱好类培训证书（如茶艺师、西式面点师、保育员等）不在《国家职业资格目录》内，不可申报继续教育扣除。",
+      solution: "仅取得国家职业资格目录内证书（如注册会计师、教师资格证等）的当年方可扣除3600元。"
+    }
+  ],
+
+  // ===== 问卷题目配置 =====
+  surveyConfig: {
+    sections: [
+      {
+        id: "basic",
+        title: "基本信息",
+        icon: "user",
+        questions: [
+          {
+            id: "annual_income",
+            type: "number",
+            label: "本年度综合所得总额（预估）",
+            subtitle: "含工资薪金、劳务报酬、稿酬、特许权使用费",
+            unit: "元",
+            required: true,
+            placeholder: "如：150000"
+          },
+          {
+            id: "social_insurance",
+            type: "number",
+            label: "本年度个人缴纳三险一金总额",
+            subtitle: "养老保险、医疗保险、失业保险、住房公积金个人部分",
+            unit: "元",
+            required: false,
+            placeholder: "如：18000",
+            default: 0
+          },
+          {
+            id: "annual_bonus",
+            type: "number",
+            label: "本年度年终奖金额",
+            subtitle: "全年一次性奖金，将对比单独计税与合并计税哪种更优",
+            unit: "元",
+            required: false,
+            placeholder: "如：50000",
+            default: 0
+          },
+          {
+            id: "prepaid_tax",
+            type: "number",
+            label: "本年度已预缴个税金额",
+            subtitle: "工资条中累计已扣缴的个税",
+            unit: "元",
+            required: false,
+            placeholder: "如：8000",
+            default: 0
+          },
+          {
+            id: "has_spouse",
+            type: "boolean",
+            label: "您是否已婚？",
+            required: true
+          },
+          {
+            id: "work_city",
+            type: "select",
+            label: "您的主要工作城市",
+            subtitle: "用于确定住房租金扣除标准",
+            options_source: "cities",
+            required: true
+          }
+        ]
+      },
+      {
+        id: "children",
+        title: "子女信息",
+        icon: "baby",
+        questions: [
+          {
+            id: "has_children",
+            type: "boolean",
+            label: "您是否有子女？",
+            required: true
+          },
+          {
+            id: "children_list",
+            type: "dynamic_list",
+            label: "请添加子女信息",
+            addLabel: "添加子女",
+            showIf: "has_children == true",
+            fields: [
+              {
+                id: "birth_date",
+                type: "date",
+                label: "出生日期",
+                required: true
+              },
+              {
+                id: "education_stage",
+                type: "select",
+                label: "当前教育阶段",
+                options: ["未入学（3岁以下）", "未入学（3岁以上）", "幼儿园", "小学", "初中", "高中", "大学专科", "大学本科", "硕士", "博士", "已毕业"],
+                required: true
+              }
+            ]
+          },
+          {
+            id: "spouse_allocation",
+            type: "radio",
+            label: "子女扣除分配方式",
+            subtitle: "选择您这边的扣除比例（已婚可选100%或50%，未婚默认100%）",
+            showIf: "has_children == true",
+            options: [
+              { value: "100", label: "我方全额扣除（100%）" },
+              { value: "50", label: "夫妻双方各扣50%" }
+            ],
+            dynamicLabel: {
+              showIf: "has_spouse == false",
+              label: "子女扣除方式",
+              subtitle: "您未婚，默认由您全额扣除（100%）",
+              fixedValue: "100"
+            },
+            required: true,
+            default: "100"
+          }
+        ]
+      },
+      {
+        id: "elderly",
+        title: "赡养老人",
+        icon: "elder",
+        questions: [
+          {
+            id: "parents_over60",
+            type: "boolean",
+            label: "您的父母是否有年满60周岁的？",
+            required: true
+          },
+          {
+            id: "is_only_child",
+            type: "boolean",
+            label: "您是否为独生子女？",
+            showIf: "parents_over60 == true",
+            required: true
+          },
+          {
+            id: "sibling_count",
+            type: "number",
+            label: "您有几个兄弟姐妹（含您本人）？",
+            subtitle: "用于计算赡养老人分摊额度",
+            showIf: "parents_over60 == true && is_only_child == false",
+            required: true,
+            placeholder: "如：2"
+          },
+          {
+            id: "elderly_allocation_method",
+            type: "radio",
+            label: "赡养老人分摊方式",
+            subtitle: "非独生子女需选择分摊方式，每人每月不超过1500元",
+            showIf: "parents_over60 == true && is_only_child == false",
+            options: [
+              { value: "average", label: "平均分摊（兄弟姐妹均分3000元/月）" },
+              { value: "agreed", label: "约定分摊（按协商比例分摊）" },
+              { value: "designated", label: "指定分摊（被赡养人指定比例）" }
+            ],
+            required: true,
+            default: "average"
+          },
+          {
+            id: "my_share_ratio",
+            type: "number",
+            label: "您计划分摊的比例（%）",
+            subtitle: "非独生子女每人每月不超过1500元（即不超过50%）",
+            showIf: "parents_over60 == true && is_only_child == false && elderly_allocation_method != 'average'",
+            required: true,
+            placeholder: "如：50",
+            default: 50
+          },
+          {
+            id: "has_written_agreement",
+            type: "boolean",
+            label: "是否已签订书面分摊协议？",
+            subtitle: "约定分摊和指定分摊均需签订书面协议",
+            showIf: "parents_over60 == true && is_only_child == false",
+            required: false
+          },
+          {
+            id: "include_in_laws",
+            type: "boolean",
+            label: "是否需要填报岳父母/公婆？",
+            subtitle: "注意：岳父母/公婆不符合赡养老人扣除条件",
+            showIf: "parents_over60 == true",
+            required: false,
+            default: false
+          }
+        ]
+      },
+      {
+        id: "housing",
+        title: "住房情况",
+        icon: "home",
+        questions: [
+          {
+            id: "has_own_house",
+            type: "boolean",
+            label: "您在主要工作城市是否有自有住房？",
+            required: true
+          },
+          {
+            id: "has_loan",
+            type: "boolean",
+            label: "是否有住房贷款？",
+            showIf: "has_own_house == true",
+            required: false
+          },
+          {
+            id: "is_first_loan",
+            type: "boolean",
+            label: "该贷款是否为首套住房贷款？",
+            subtitle: "执行首套房贷利率的贷款",
+            showIf: "has_loan == true",
+            required: true
+          },
+          {
+            id: "previously_claimed_loan",
+            type: "boolean",
+            label: "之前是否已申报过其他住房的房贷利息扣除？",
+            subtitle: "房贷利息扣除一生只能享受一次",
+            showIf: "has_loan == true",
+            required: true
+          },
+          {
+            id: "loan_months_remaining",
+            type: "number",
+            label: "贷款剩余扣除月数（预估）",
+            subtitle: "最长240个月",
+            showIf: "has_loan == true && is_first_loan == true",
+            required: false,
+            placeholder: "如：120",
+            default: 240
+          },
+          {
+            id: "loan_allocation",
+            type: "radio",
+            label: "房贷利息扣除分配方式",
+            subtitle: "夫妻双方只能由一方扣除，已婚可选由谁扣除",
+            showIf: "has_loan == true && is_first_loan == true && previously_claimed_loan == false",
+            options: [
+              { value: "100", label: "我方全额扣除（100%）" },
+              { value: "0", label: "配偶全额扣除（我方不扣）" },
+              { value: "50", label: "夫妻各扣50%（各500元/月）" }
+            ],
+            required: true,
+            default: "100"
+          },
+          {
+            id: "has_rent",
+            type: "boolean",
+            label: "您是否在主要工作城市租房？",
+            showIf: "has_own_house == false",
+            required: false
+          },
+          {
+            id: "rent_city",
+            type: "select",
+            label: "租房所在城市",
+            showIf: "has_rent == true",
+            options_source: "cities",
+            required: true
+          },
+          {
+            id: "spouse_has_house_in_work_city",
+            type: "boolean",
+            label: "您的配偶在您的主要工作城市是否有自有住房？",
+            subtitle: "配偶在工作城市有住房的，视同您在工作城市有住房",
+            showIf: "has_rent == true && has_spouse == true",
+            required: false
+          }
+        ]
+      },
+      {
+        id: "education",
+        title: "继续教育",
+        icon: "book",
+        questions: [
+          {
+            id: "has_degree_education",
+            type: "boolean",
+            label: "本年度是否在读学历（学位）继续教育？",
+            subtitle: "如在职研究生、专升本、函授本科等（限中国境内）",
+            required: false
+          },
+          {
+            id: "education_start_date",
+            type: "date",
+            label: "入学日期",
+            showIf: "has_degree_education == true",
+            required: true
+          },
+          {
+            id: "education_months_total",
+            type: "number",
+            label: "本年度在读月数",
+            subtitle: "扣除期限最长48个月",
+            showIf: "has_degree_education == true",
+            required: false,
+            placeholder: "如：12",
+            default: 12
+          },
+          {
+            id: "has_vocational_cert",
+            type: "boolean",
+            label: "本年度是否取得职业资格证书？",
+            subtitle: "须为《国家职业资格目录》内证书",
+            required: false
+          },
+          {
+            id: "cert_in_directory",
+            type: "boolean",
+            label: "该证书是否在国家职业资格目录内？",
+            subtitle: "可通过'国务院客户端'小程序查询",
+            showIf: "has_vocational_cert == true",
+            required: true
+          }
+        ]
+      },
+      {
+        id: "medical",
+        title: "大病医疗",
+        icon: "medical",
+        questions: [
+          {
+            id: "has_large_medical_expense",
+            type: "boolean",
+            label: "本年度是否有大病医疗支出？",
+            subtitle: "医保目录内自付部分累计超15000元方可扣除",
+            required: false
+          },
+          {
+            id: "medical_self_paid",
+            type: "number",
+            label: "医保目录内个人自付金额",
+            subtitle: "可通过'国家医保服务平台'APP查询",
+            unit: "元",
+            showIf: "has_large_medical_expense == true",
+            required: true,
+            placeholder: "如：30000"
+          },
+          {
+            id: "has_minor_children_medical",
+            type: "boolean",
+            label: "是否有未成年子女的大病医疗支出？",
+            showIf: "has_large_medical_expense == true",
+            required: false
+          },
+          {
+            id: "children_medical_self_paid",
+            type: "number",
+            label: "未成年子女医保目录内自付金额",
+            unit: "元",
+            showIf: "has_minor_children_medical == true",
+            required: false,
+            placeholder: "如：10000",
+            default: 0
+          },
+          {
+            id: "medical_deduction_by",
+            type: "radio",
+            label: "大病医疗扣除由谁享受？",
+            subtitle: "可由本人、配偶或父母一方扣除",
+            showIf: "has_large_medical_expense == true",
+            options: [
+              { value: "self", label: "本人扣除" },
+              { value: "spouse", label: "配偶扣除" },
+              { value: "parent", label: "父母一方扣除" }
+            ],
+            required: true
+          }
+        ]
+      },
+      {
+        id: "other_deductions",
+        title: "其他扣除",
+        icon: "deduct",
+        questions: [
+          {
+            id: "has_annuity",
+            type: "boolean",
+            label: "本年度是否有企业年金/职业年金个人缴费？",
+            subtitle: "个人缴费不超过本人缴费工资计税基数4%的部分可税前扣除",
+            required: false
+          },
+          {
+            id: "annuity_amount",
+            type: "number",
+            label: "年度个人缴纳年金金额",
+            unit: "元",
+            showIf: "has_annuity == true",
+            required: false,
+            placeholder: "如：6000",
+            default: 0
+          },
+          {
+            id: "has_health_insurance",
+            type: "boolean",
+            label: "本年度是否购买符合规定的商业健康保险？",
+            subtitle: "限额2400元/年（200元/月），保单须注明税优识别码",
+            required: false
+          },
+          {
+            id: "health_insurance_amount",
+            type: "number",
+            label: "商业健康险保费金额",
+            subtitle: "限额2400元/年，超出部分不可扣除",
+            unit: "元",
+            showIf: "has_health_insurance == true",
+            required: false,
+            placeholder: "如：2400",
+            default: 0
+          },
+          {
+            id: "has_pension",
+            type: "boolean",
+            label: "本年度是否缴纳个人养老金？",
+            subtitle: "限额12000元/年，可通过个税APP\"一站式申报\"自动获取",
+            required: false
+          },
+          {
+            id: "pension_amount",
+            type: "number",
+            label: "年度个人养老金缴存金额",
+            subtitle: "限额12000元/年",
+            unit: "元",
+            showIf: "has_pension == true",
+            required: false,
+            placeholder: "如：12000",
+            default: 0
+          },
+          {
+            id: "other_deduct_amount",
+            type: "number",
+            label: "其他扣除金额",
+            subtitle: "税延养老保险、允许扣除的税费、公务用车通讯补贴等",
+            unit: "元",
+            required: false,
+            placeholder: "如：3600",
+            default: 0
+          },
+          {
+            id: "other_deduction_summary",
+            type: "summary",
+            label: "其他扣除费用合计",
+            subtitle: "以下为各项其他扣除的实时汇总（已自动套用限额）",
+            showIf: "has_annuity == true || has_health_insurance == true || has_pension == true",
+            computeFields: {
+              fields: [
+                { id: "annuity_amount", label: "企业年金/职业年金", showIf: "has_annuity == true", max: null },
+                { id: "health_insurance_amount", label: "商业健康保险", showIf: "has_health_insurance == true", max: 2400 },
+                { id: "pension_amount", label: "个人养老金", showIf: "has_pension == true", max: 12000 },
+                { id: "other_deduct_amount", label: "其他扣除项目", showIf: null, max: null }
+              ],
+              unit: "元"
+            }
+          }
+        ]
+      },
+      {
+        id: "expense_total",
+        title: "费用合计",
+        icon: "deduct",
+        questions: [
+          {
+            id: "expense_total_amount",
+            type: "number",
+            label: "费用合计（展业成本等）",
+            subtitle: "保险营销员/证券经纪人的展业成本（佣金收入×25%），或其他依法可扣除的费用金额",
+            unit: "元",
+            required: false,
+            placeholder: "如：12500",
+            default: 0
+          }
+        ]
+      }
+    ]
+  }
+};
+
+
+/**
+ * storage.js - 本地存储管理
+ * IndexedDB 优先，file:// 协议下降级到 localStorage
+ */
+
+const DB_NAME = 'TaxAssistantDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'userRecords';
+const LS_KEY = 'tax_records';
+
+const Storage = {
+  db: null,
+  useFallback: false,  // 是否降级到 localStorage
+
+  async init() {
+    // 先检测 IndexedDB 是否可用（file:// 协议下可能不可用）
+    if (typeof indexedDB === 'undefined') {
+      this.useFallback = true;
+      return null;
+    }
+
+    try {
+      return await new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        // 设定超时，防止某些浏览器卡住
+        const timer = setTimeout(() => {
+          this.useFallback = true;
+          resolve(null);
+        }, 3000);
+
+        request.onerror = () => {
+          clearTimeout(timer);
+          this.useFallback = true;
+          resolve(null);  // 不 reject，降级处理
+        };
+        request.onsuccess = () => {
+          clearTimeout(timer);
+          this.db = request.result;
+          resolve(this.db);
+        };
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+            store.createIndex('createdAt', 'createdAt', { unique: false });
+          }
+        };
+      });
+    } catch (e) {
+      this.useFallback = true;
+      return null;
+    }
+  },
+
+  // ===== localStorage 降级实现 =====
+
+  _lsGetAll() {
+    try {
+      return JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  },
+
+  _lsSaveAll(records) {
+    localStorage.setItem(LS_KEY, JSON.stringify(records));
+  },
+
+  // ===== 统一接口 =====
+
+  async save(profile) {
+    if (this.useFallback || !this.db) {
+      const records = this._lsGetAll();
+      const record = {
+        ...profile,
+        id: records.length > 0 ? Math.max(...records.map(r => r.id || 0)) + 1 : 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      records.push(record);
+      this._lsSaveAll(records);
+      return record.id;
+    }
+
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const record = {
+        ...profile,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      const request = store.add(record);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async get(id) {
+    if (this.useFallback || !this.db) {
+      const records = this._lsGetAll();
+      return records.find(r => r.id === id) || null;
+    }
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.get(id);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async getAll() {
+    if (this.useFallback || !this.db) {
+      return this._lsGetAll();
+    }
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async delete(id) {
+    if (this.useFallback || !this.db) {
+      const records = this._lsGetAll();
+      const filtered = records.filter(r => r.id !== id);
+      this._lsSaveAll(filtered);
+      return true;
+    }
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.delete(id);
+      request.onsuccess = () => resolve(true);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async clearAll() {
+    if (this.useFallback || !this.db) {
+      localStorage.removeItem(LS_KEY);
+      return true;
+    }
+    return new Promise((resolve, reject) => {
+      const tx = this.db.transaction(STORE_NAME, 'readwrite');
+      const store = tx.objectStore(STORE_NAME);
+      const request = store.clear();
+      request.onsuccess = () => resolve(true);
+      request.onerror = () => reject(request.error);
+    });
+  }
+};
+
+// Session storage for current questionnaire progress
+const SessionStorage = {
+  get(key) {
+    try {
+      const val = sessionStorage.getItem('tax_' + key);
+      return val ? JSON.parse(val) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  set(key, value) {
+    try {
+      sessionStorage.setItem('tax_' + key, JSON.stringify(value));
+    } catch {}
+  },
+
+  remove(key) {
+    try {
+      sessionStorage.removeItem('tax_' + key);
+    } catch {}
+  },
+
+  clear() {
+    try {
+      Object.keys(sessionStorage)
+        .filter(k => k.startsWith('tax_'))
+        .forEach(k => sessionStorage.removeItem(k));
+    } catch {}
+  }
+};
+
+
+/**
+ * survey.js - 问卷引擎
+ * 动态渲染问卷题目，支持条件分支（showIf）、动态列表、分步导航
+ */
+
+const Survey = {
+  config: null,
+  cities: null,
+  currentStep: 0,
+  totalSteps: 0,
+  answers: {},
+
+  async init() {
+    this.config = TaxData.surveyConfig;
+    this.cities = TaxData.cities;
+  },
+
+  /**
+   * 获取所有可见的section（考虑条件分支）
+   */
+  getVisibleSections() {
+    return this.config.sections.filter(section => {
+      // section级别不直接控制可见性，由内部question的showIf控制
+      return true;
+    });
+  },
+
+  /**
+   * 评估showIf条件
+   */
+  evaluateCondition(condition) {
+    if (!condition) return true;
+    // 格式: "field == value" 或 "field == true"
+    const match = condition.match(/(\w+)\s*==\s*(.+)/);
+    if (!match) return true;
+    const [, field, value] = match;
+    const actualValue = this.answers[field];
+    const expectedValue = value.trim().replace(/^["']|["']$/g, '');
+    if (expectedValue === 'true') return actualValue === true || actualValue === 'true';
+    if (expectedValue === 'false') return actualValue === false || actualValue === 'false';
+    return String(actualValue) === expectedValue;
+  },
+
+  /**
+   * 获取某个section下可见的题目
+   */
+  getVisibleQuestions(section) {
+    if (!section.questions) return [];
+    return section.questions.filter(q => this.evaluateCondition(q.showIf));
+  },
+
+  /**
+   * 渲染整个问卷界面
+   */
+  render(container) {
+    const sections = this.getVisibleSections();
+    this.totalSteps = sections.length;
+    if (this.currentStep >= this.totalSteps) this.currentStep = 0;
+
+    const section = sections[this.currentStep];
+    const visibleQuestions = this.getVisibleQuestions(section);
+    const progress = ((this.currentStep + 1) / this.totalSteps) * 100;
+
+    container.innerHTML = `
+      <div class="survey-container">
+        <div class="survey-progress-bar">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+          <span class="progress-text">第 ${this.currentStep + 1} / ${this.totalSteps} 步</span>
+        </div>
+
+        <div class="survey-section">
+          <h2 class="section-title">${section.title}</h2>
+          <div class="section-questions" id="sectionQuestions">
+            ${visibleQuestions.map(q => this.renderQuestion(q)).join('')}
+          </div>
+        </div>
+
+        <div class="survey-actions">
+          ${this.currentStep > 0 ? '<button class="btn btn-secondary" onclick="Survey.prevStep()">上一步</button>' : ''}
+          ${this.currentStep < this.totalSteps - 1
+            ? '<button class="btn btn-primary" onclick="Survey.nextStep()">下一步</button>'
+            : '<button class="btn btn-success" onclick="Survey.finish()">生成填报指引</button>'}
+        </div>
+      </div>
+    `;
+
+    // 绑定事件
+    this.bindEvents(container);
+  },
+
+  /**
+   * 渲染单个题目
+   */
+  renderQuestion(q) {
+    const currentVal = this.answers[q.id] !== undefined ? this.answers[q.id] : (q.default !== undefined ? q.default : '');
+
+    switch (q.type) {
+      case 'number':
+        return this.renderNumber(q, currentVal);
+      case 'boolean':
+        return this.renderBoolean(q, currentVal);
+      case 'select':
+        return this.renderSelect(q, currentVal);
+      case 'radio':
+        return this.renderRadio(q, currentVal);
+      case 'date':
+        return this.renderDate(q, currentVal);
+      case 'dynamic_list':
+        return this.renderDynamicList(q, currentVal);
+      case 'summary':
+        return this.renderSummaryField(q);
+      default:
+        return '';
+    }
+  },
+
+  renderNumber(q, val) {
+    return `
+      <div class="question" data-qid="${q.id}">
+        <label class="q-label">${q.label}${q.required ? '<span class="required">*</span>' : ''}</label>
+        ${q.subtitle ? `<p class="q-subtitle">${q.subtitle}</p>` : ''}
+        <div class="input-group">
+          <input type="number" class="q-input" id="q_${q.id}" value="${val}" placeholder="${q.placeholder || ''}" inputmode="numeric" onchange="Survey.setAnswer('${q.id}', Number(this.value)); Survey.updateSummaryFields();">
+          ${q.unit ? `<span class="input-suffix">${q.unit}</span>` : ''}
+        </div>
+      </div>
+    `;
+  },
+
+  /**
+   * 渲染实时合计字段（summary类型）
+   * 根据配置的 fields 和条件，实时计算各字段总和（含限额）
+   */
+  renderSummaryField(q) {
+    const config = q.computeFields || {};
+    const fields = config.fields || [];
+    const unit = config.unit || '元';
+
+    // 计算当前合计
+    let total = 0;
+    const breakdown = [];
+    fields.forEach(f => {
+      if (this.evaluateCondition(f.showIf)) {
+        let val = Number(this.answers[f.id]) || 0;
+        const original = val;
+        // 先套限额
+        if (f.max !== null && f.max !== undefined) {
+          val = Math.min(val, f.max);
+        }
+        // 再按比例计算（如展业成本 = 佣金 × 25%）
+        const rate = f.rate !== undefined && f.rate !== null ? f.rate : 1;
+        const afterRate = Math.round(val * rate);
+        if (afterRate > 0) {
+          total += afterRate;
+          const rateNote = rate < 1 ? `<span class="summary-cap">(佣金${original.toLocaleString()} × ${rate * 100}%)</span>` : '';
+          const capNote = f.max !== null && f.max !== undefined && original > f.max
+            ? `<span class="summary-cap">(填报${original.toLocaleString()}，限额${f.max.toLocaleString()})</span>`
+            : '';
+          breakdown.push({ label: f.label || f.id, original, final: afterRate, rateNote, capNote });
+        }
+      }
+    });
+
+    // 构建明细行
+    const breakdownHtml = breakdown.length > 0 ? breakdown.map(b => {
+      const notes = (b.rateNote || '') + (b.capNote || '');
+      return `<div class="summary-breakdown-row"><span>${b.label}</span><span class="summary-amount">${b.final.toLocaleString()} ${unit} ${notes}</span></div>`;
+    }).join('') : '<div class="summary-breakdown-row empty">请先填写上方各项金额</div>';
+
+    return `
+      <div class="question summary-field" data-qid="${q.id}" id="${q.id}_container">
+        <label class="q-label">${q.label}</label>
+        ${q.subtitle ? `<p class="q-subtitle">${q.subtitle}</p>` : ''}
+        <div class="summary-breakdown">${breakdownHtml}</div>
+        <div class="summary-total-row">
+          <span class="summary-total-label">合计</span>
+          <span class="summary-total-value" id="${q.id}_value">${total.toLocaleString()} ${unit}</span>
+        </div>
+      </div>
+    `;
+  },
+
+  /**
+   * 更新所有 summary 类型字段的实时合计
+   * 在 number 输入 onchange 后调用
+   */
+  updateSummaryFields() {
+    const sections = this.getVisibleSections();
+    for (const section of sections) {
+      const questions = this.getVisibleQuestions(section);
+      for (const q of questions) {
+        if (q.type === 'summary') {
+          const container = document.getElementById(q.id + '_container');
+          if (container) {
+            // 重新渲染该 summary 字段
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = this.renderSummaryField(q);
+            const newEl = tempDiv.firstElementChild;
+            if (newEl) {
+              container.replaceWith(newEl);
+            }
+          }
+        }
+      }
+    }
+  },
+
+  renderBoolean(q, val) {
+    return `
+      <div class="question" data-qid="${q.id}">
+        <label class="q-label">${q.label}${q.required ? '<span class="required">*</span>' : ''}</label>
+        ${q.subtitle ? `<p class="q-subtitle">${q.subtitle}</p>` : ''}
+        <div class="boolean-group">
+          <button class="bool-btn ${val === true ? 'active' : ''}" data-value="true" onclick="Survey.setBoolean('${q.id}', true)">是</button>
+          <button class="bool-btn ${val === false ? 'active' : ''}" data-value="false" onclick="Survey.setBoolean('${q.id}', false)">否</button>
+        </div>
+      </div>
+    `;
+  },
+
+  renderSelect(q, val) {
+    let options = '';
+    if (q.options_source === 'cities') {
+      options = this.renderCityOptions(val);
+    } else if (Array.isArray(q.options)) {
+      if (typeof q.options[0] === 'string') {
+        options = `<option value="">请选择</option>` + q.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('');
+      } else {
+        options = `<option value="">请选择</option>` + q.options.map(o => `<option value="${o.value}" ${val === o.value ? 'selected' : ''}>${o.label}</option>`).join('');
+      }
+    }
+    return `
+      <div class="question" data-qid="${q.id}">
+        <label class="q-label">${q.label}${q.required ? '<span class="required">*</span>' : ''}</label>
+        ${q.subtitle ? `<p class="q-subtitle">${q.subtitle}</p>` : ''}
+        <select class="q-select" id="q_${q.id}" onchange="Survey.setAnswer('${q.id}', this.value)">
+          ${options}
+        </select>
+      </div>
+    `;
+  },
+
+  renderCityOptions(val) {
+    const tier1 = this.cities.tier1 || [];
+    let html = '<option value="">请选择城市</option>';
+    html += '<optgroup label="直辖市/省会（1500元/月）">';
+    tier1.forEach(c => html += `<option value="${c}" ${val === c ? 'selected' : ''}>${c}</option>`);
+    html += '</optgroup>';
+    html += '<optgroup label="其他城市">';
+    const others = ['苏州市', '温州市', '佛山市', '东莞市', '徐州市', '临沂市', '保定市', '南通市', '泰州市', '盐城市', '扬州市', '镇江市', '连云港市', '其他'];
+    others.forEach(c => html += `<option value="${c}" ${val === c ? 'selected' : ''}>${c}</option>`);
+    html += '</optgroup>';
+    return html;
+  },
+
+  renderRadio(q, val) {
+    const options = q.options || [];
+
+    // 检查 dynamicLabel 条件：满足时显示固定值而非选项列表
+    if (q.dynamicLabel && this.evaluateCondition(q.dynamicLabel.showIf)) {
+      const fixedValue = q.dynamicLabel.fixedValue;
+      const displayLabel = q.dynamicLabel.fixedValue === '100' ? '您全额扣除（100%）' : q.dynamicLabel.fixedValue;
+      // 自动设置答案
+      this.answers[q.id] = fixedValue;
+      return `
+        <div class="question" data-qid="${q.id}">
+          <label class="q-label">${q.dynamicLabel.label || q.label}</label>
+          ${q.dynamicLabel.subtitle ? `<p class="q-subtitle">${q.dynamicLabel.subtitle}</p>` : ''}
+          <div class="radio-group">
+            <label class="radio-item checked" style="opacity:0.7;pointer-events:none;">
+              <input type="radio" name="radio_${q.id}" value="${fixedValue}" checked disabled>
+              <span class="radio-label">${displayLabel}</span>
+            </label>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="question" data-qid="${q.id}">
+        <label class="q-label">${q.label}${q.required ? '<span class="required">*</span>' : ''}</label>
+        ${q.subtitle ? `<p class="q-subtitle">${q.subtitle}</p>` : ''}
+        <div class="radio-group">
+          ${options.map(o => `
+            <label class="radio-item ${String(val) === String(o.value) ? 'checked' : ''}">
+              <input type="radio" name="radio_${q.id}" value="${o.value}" ${String(val) === String(o.value) ? 'checked' : ''} onchange="Survey.setAnswer('${q.id}', this.value)">
+              <span class="radio-label">${o.label}</span>
+            </label>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  },
+
+  renderDate(q, val) {
+    return `
+      <div class="question" data-qid="${q.id}">
+        <label class="q-label">${q.label}${q.required ? '<span class="required">*</span>' : ''}</label>
+        <input type="date" class="q-input q-date" id="q_${q.id}" value="${val || ''}" onchange="Survey.setAnswer('${q.id}', this.value)">
+      </div>
+    `;
+  },
+
+  renderDynamicList(q, val) {
+    const items = Array.isArray(val) ? val : [];
+    return `
+      <div class="question dynamic-list" data-qid="${q.id}">
+        <label class="q-label">${q.label}${q.required ? '<span class="required">*</span>' : ''}</label>
+        <div class="list-items" id="list_${q.id}">
+          ${items.map((item, i) => this.renderListItem(q, item, i)).join('')}
+        </div>
+        <button class="btn btn-outline btn-add" onclick="Survey.addListItem('${q.id}')">${q.addLabel || '+ 添加'}</button>
+      </div>
+    `;
+  },
+
+  renderListItem(q, item, index) {
+    const fields = q.fields || [];
+    return `
+      <div class="list-item" data-index="${index}">
+        <div class="list-item-header">
+          <span>第 ${index + 1} 项</span>
+          <button class="btn-remove" onclick="Survey.removeListItem('${q.id}', ${index})">×</button>
+        </div>
+        ${fields.map(f => {
+          const val = item ? item[f.id] : '';
+          if (f.type === 'date') {
+            return `<input type="date" class="q-input q-date-sm" placeholder="${f.label}" value="${val || ''}" onchange="Survey.updateListItem('${q.id}', ${index}, '${f.id}', this.value)">`;
+          }
+          if (f.type === 'select') {
+            return `<select class="q-select-sm" onchange="Survey.updateListItem('${q.id}', ${index}, '${f.id}', this.value)">
+              <option value="">${f.label}</option>
+              ${f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}
+            </select>`;
+          }
+          return '';
+        }).join('')}
+      </div>
+    `;
+  },
+
+  // ===== 事件处理 =====
+
+  bindEvents(container) {
+    // 数字输入框
+    container.querySelectorAll('.q-input[type="number"]').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const id = e.target.id.replace('q_', '');
+        this.setAnswer(id, e.target.value === '' ? '' : Number(e.target.value));
+      });
+    });
+  },
+
+  setAnswer(id, value) {
+    this.answers[id] = value;
+    // 如果是radio类型，不影响条件分支，不需要重新渲染
+  },
+
+  setBoolean(id, value) {
+    this.answers[id] = value;
+    // 更新按钮状态
+    const question = document.querySelector(`[data-qid="${id}"]`);
+    if (question) {
+      question.querySelectorAll('.bool-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === String(value));
+      });
+    }
+    // 重新渲染前先保存当前所有输入值
+    this.syncInputValues();
+    // 检查是否需要重新渲染（条件分支）
+    this.checkRerender();
+  },
+
+  // 重新渲染前同步所有输入框的当前值到answers
+  syncInputValues() {
+    const container = document.getElementById('sectionQuestions');
+    if (!container) return;
+    // 数字输入框
+    container.querySelectorAll('.q-input[type="number"]').forEach(function(input) {
+      const id = input.id.replace('q_', '');
+      if (input.value !== '') {
+        this[id] = Number(input.value);
+      }
+    }.bind(this.answers));
+    // 日期
+    container.querySelectorAll('.q-input[type="date"]').forEach(function(input) {
+      const id = input.id.replace('q_', '');
+      if (input.value) this[id] = input.value;
+    }.bind(this.answers));
+    // select
+    container.querySelectorAll('.q-select').forEach(function(sel) {
+      const id = sel.id.replace('q_', '');
+      if (sel.value) this[id] = sel.value;
+    }.bind(this.answers));
+    // radio
+    container.querySelectorAll('.radio-item input[type="radio"]:checked').forEach(function(radio) {
+      const name = radio.name.replace('radio_', '');
+      this[name] = radio.value;
+    }.bind(this.answers));
+  },
+
+  checkRerender() {
+    const sections = this.getVisibleSections();
+    const section = sections[this.currentStep];
+    const currentVisible = this.getVisibleQuestions(section);
+    const renderedQuestions = document.querySelectorAll('#sectionQuestions .question');
+
+    // 如果可见题目数量变化，重新渲染当前section
+    if (currentVisible.length !== renderedQuestions.length) {
+      const container = document.getElementById('sectionQuestions');
+      if (container) {
+        container.innerHTML = currentVisible.map(q => this.renderQuestion(q)).join('');
+      }
+    }
+  },
+
+  addListItem(qid) {
+    if (!Array.isArray(this.answers[qid])) this.answers[qid] = [];
+    this.answers[qid].push({});
+    this.rerenderList(qid);
+  },
+
+  removeListItem(qid, index) {
+    if (!Array.isArray(this.answers[qid])) return;
+    this.answers[qid].splice(index, 1);
+    this.rerenderList(qid);
+  },
+
+  updateListItem(qid, index, field, value) {
+    if (!Array.isArray(this.answers[qid])) return;
+    if (!this.answers[qid][index]) this.answers[qid][index] = {};
+    this.answers[qid][index][field] = value;
+  },
+
+  rerenderList(qid) {
+    const listEl = document.getElementById(`list_${qid}`);
+    if (!listEl) return;
+    const items = this.answers[qid] || [];
+    // 找到question配置
+    const sections = this.getVisibleSections();
+    for (const section of sections) {
+      const q = section.questions.find(qq => qq.id === qid);
+      if (q) {
+        listEl.innerHTML = items.map((item, i) => this.renderListItem(q, item, i)).join('');
+        break;
+      }
+    }
+  },
+
+  nextStep() {
+    if (!this.validateCurrentStep()) return;
+    this.currentStep++;
+    App.renderSurvey();
+  },
+
+  prevStep() {
+    this.currentStep = Math.max(0, this.currentStep - 1);
+    App.renderSurvey();
+  },
+
+  finish() {
+    if (!this.validateCurrentStep()) return;
+    App.processSurveyResult(this.answers);
+  },
+
+  validateCurrentStep() {
+    const sections = this.getVisibleSections();
+    const section = sections[this.currentStep];
+    const visibleQuestions = this.getVisibleQuestions(section);
+    let isValid = true;
+    let firstError = null;
+
+    for (const q of visibleQuestions) {
+      // 只验证当前可见的必填题目
+      if (q.required && this.evaluateCondition(q.showIf)) {
+        const val = this.answers[q.id];
+        if (val === undefined || val === '' || val === null) {
+          isValid = false;
+          const el = document.querySelector('[data-qid="' + q.id + '"]');
+          if (el) {
+            el.classList.add('error');
+            if (!firstError) firstError = el;
+          }
+        }
+      }
+      // 动态列表必填校验
+      if (q.type === 'dynamic_list' && q.required && this.evaluateCondition(q.showIf)) {
+        const items = this.answers[q.id];
+        if (!items || items.length === 0) {
+          isValid = false;
+          const el = document.querySelector('[data-qid="' + q.id + '"]');
+          if (el) el.classList.add('error');
+        }
+      }
+    }
+
+    if (!isValid && firstError) {
+      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      App.showToast('请填写所有必填项');
+    }
+
+    return isValid;
+  },
+
+  reset() {
+    this.currentStep = 0;
+    this.answers = {};
+  }
+};
+
+
+/**
+ * calculator.js - 个税计算器
+ * 综合所得应纳税额计算 + 年终奖计税对比
+ */
+
+const Calculator = {
+  annualRates: null,
+  monthlyRates: null,
+
+  async init() {
+    this.annualRates = TaxData.taxRates;
+    this.monthlyRates = TaxData.monthlyTaxRates;
+  },
+
+  /**
+   * 查找年度税率档位
+   */
+  findAnnualBracket(taxableIncome) {
+    for (const bracket of this.annualRates) {
+      if (bracket.max === null || taxableIncome <= bracket.max) {
+        return bracket;
+      }
+    }
+    return this.annualRates[this.annualRates.length - 1];
+  },
+
+  /**
+   * 查找月度税率档位（年终奖单独计税用）
+   */
+  findMonthlyBracket(monthlyAmount) {
+    for (const bracket of this.monthlyRates) {
+      if (bracket.max === null || monthlyAmount <= bracket.max) {
+        return bracket;
+      }
+    }
+    return this.monthlyRates[this.monthlyRates.length - 1];
+  },
+
+  /**
+   * 综合所得应纳税额计算
+   * @param {number} income - 年度综合所得
+   * @param {number} socialInsurance - 三险一金
+   * @param {number} specialDeduction - 专项附加扣除总额
+   * @param {number} otherDeduction - 其他扣除（如年金、商业健康险等）
+   * @returns {object} 计算结果
+   */
+  calculateIncomeTax(income, socialInsurance = 0, specialDeduction = 0, otherDeduction = 0) {
+    const basicDeduction = 60000;
+    const totalDeduction = basicDeduction + socialInsurance + specialDeduction + otherDeduction;
+    const taxableIncome = Math.max(0, income - totalDeduction);
+    const bracket = this.findAnnualBracket(taxableIncome);
+    const taxPayable = Math.max(0, taxableIncome * bracket.rate - bracket.quickDeduction);
+    const effectiveRate = income > 0 ? taxPayable / income : 0;
+
+    return {
+      income,
+      basicDeduction,
+      socialInsurance,
+      specialDeduction,
+      otherDeduction,
+      totalDeduction,
+      taxableIncome,
+      taxRate: bracket.rate,
+      quickDeduction: bracket.quickDeduction,
+      taxPayable: Math.round(taxPayable),
+      effectiveRate: (effectiveRate * 100).toFixed(2) + '%',
+      bracketLabel: bracket.label
+    };
+  },
+
+  /**
+   * 年终奖单独计税
+   * @param {number} bonus - 年终奖金额
+   * @returns {object}
+   */
+  calculateBonusSeparate(bonus) {
+    if (!bonus || bonus <= 0) return { bonus, monthlyAvg: 0, taxRate: 0, quickDeduction: 0, tax: 0 };
+    const monthlyAvg = bonus / 12;
+    const bracket = this.findMonthlyBracket(monthlyAvg);
+    const tax = Math.max(0, bonus * bracket.rate - bracket.quickDeduction);
+    return {
+      bonus,
+      monthlyAvg,
+      taxRate: bracket.rate,
+      quickDeduction: bracket.quickDeduction,
+      tax: Math.round(tax),
+      bracketLabel: bracket.label
+    };
+  },
+
+  /**
+   * 年终奖合并计税（并入综合所得）
+   * @param {number} income - 年度综合所得（不含年终奖）
+   * @param {number} bonus - 年终奖
+   * @param {number} socialInsurance - 三险一金
+   * @param {number} specialDeduction - 专项附加扣除
+   * @returns {object}
+   */
+  calculateBonusMerged(income, bonus, socialInsurance = 0, specialDeduction = 0, otherDeduction = 0) {
+    const totalIncome = income + bonus;
+    const result = this.calculateIncomeTax(totalIncome, socialInsurance, specialDeduction, otherDeduction);
+    return {
+      totalIncome,
+      taxableIncome: result.taxableIncome,
+      taxRate: result.taxRate,
+      quickDeduction: result.quickDeduction,
+      tax: result.taxPayable,
+      bracketLabel: result.bracketLabel
+    };
+  },
+
+  /**
+   * 年终奖计税对比（核心功能）
+   * 分别计算单独计税和合并计税，输出对比结果和推荐方案
+   * @param {number} income - 年度综合所得（不含年终奖）
+   * @param {number} bonus - 年终奖
+   * @param {number} socialInsurance - 三险一金
+   * @param {number} specialDeduction - 专项附加扣除
+   * @param {number} otherDeduction - 其他扣除
+   * @returns {object} 对比结果
+   */
+  compareBonusTax(income, bonus, socialInsurance = 0, specialDeduction = 0, otherDeduction = 0) {
+    if (!bonus || bonus <= 0) {
+      return {
+        hasBonus: false,
+        separate: null,
+        merged: null,
+        recommend: null,
+        saving: 0,
+        trapWarning: null
+      };
+    }
+
+    // 方案A：单独计税
+    const incomeTaxSeparate = this.calculateIncomeTax(income, socialInsurance, specialDeduction, otherDeduction);
+    const bonusTaxSeparate = this.calculateBonusSeparate(bonus);
+    const totalTaxSeparate = incomeTaxSeparate.taxPayable + bonusTaxSeparate.tax;
+
+    // 方案B：合并计税
+    const mergedResult = this.calculateBonusMerged(income, bonus, socialInsurance, specialDeduction, otherDeduction);
+    const totalTaxMerged = mergedResult.tax;
+
+    // 推荐方案（税额更低者）
+    const recommendSeparate = totalTaxSeparate <= totalTaxMerged;
+    const saving = Math.abs(totalTaxSeparate - totalTaxMerged);
+
+    // 临界点陷阱检测
+    const trapWarning = this.checkBonusTrap(bonus);
+
+    return {
+      hasBonus: true,
+      separate: {
+        label: '单独计税',
+        incomeTax: incomeTaxSeparate.taxPayable,
+        bonusTax: bonusTaxSeparate.tax,
+        totalTax: totalTaxSeparate,
+        bonusMonthlyAvg: bonusTaxSeparate.monthlyAvg,
+        bonusTaxRate: bonusTaxSeparate.taxRate,
+        bonusQuickDeduction: bonusTaxSeparate.quickDeduction,
+        bracketLabel: bonusTaxSeparate.bracketLabel,
+        detail: incomeTaxSeparate
+      },
+      merged: {
+        label: '合并计税',
+        totalTax: totalTaxMerged,
+        totalIncome: mergedResult.totalIncome,
+        taxableIncome: mergedResult.taxableIncome,
+        taxRate: mergedResult.taxRate,
+        quickDeduction: mergedResult.quickDeduction,
+        bracketLabel: mergedResult.bracketLabel,
+        detail: mergedResult
+      },
+      recommend: recommendSeparate ? 'separate' : 'merged',
+      recommendLabel: recommendSeparate ? '单独计税' : '合并计税',
+      saving: Math.round(saving),
+      trapWarning,
+      // 综合分析
+      analysis: this.generateBonusAnalysis(income, bonus, socialInsurance, specialDeduction, recommendSeparate, saving)
+    };
+  },
+
+  /**
+   * 临界点陷阱检测
+   * 检测年终奖是否处于税率跳档临界点附近（多发1元导致税额跳增）
+   */
+  checkBonusTrap(bonus) {
+    const traps = [
+      { threshold: 36000,  nextTier: 144000, label: '36,000' },
+      { threshold: 144000, nextTier: 300000, label: '144,000' },
+      { threshold: 300000, nextTier: 420000, label: '300,000' },
+      { threshold: 420000, nextTier: 660000, label: '420,000' },
+      { threshold: 660000, nextTier: 960000, label: '660,000' },
+      { threshold: 960000, nextTier: null,    label: '960,000' }
+    ];
+
+    for (const trap of traps) {
+      // 奖金刚好超过临界点（1元以内）即触发陷阱
+      if (bonus > trap.threshold && bonus <= trap.threshold + 1000) {
+        const prevBracket = this.findMonthlyBracket(trap.threshold / 12);
+        const currentBracket = this.findMonthlyBracket(bonus / 12);
+        const taxAtThreshold = trap.threshold * prevBracket.rate - prevBracket.quickDeduction;
+        const taxAtBonus = bonus * currentBracket.rate - currentBracket.quickDeduction;
+        const taxDiff = taxAtBonus - taxAtThreshold;
+        const extraIncome = bonus - trap.threshold;
+
+        if (taxDiff > extraIncome) {
+          return {
+            isTrap: true,
+            threshold: trap.threshold,
+            label: trap.label,
+            message: `年终奖${this.formatMoney(bonus)}刚好超过临界点${trap.label}元，多发${extraIncome}元却多交税${Math.round(taxDiff)}元，实际到手反而减少${Math.round(taxDiff - extraIncome)}元！`,
+            suggestion: `建议与单位协商调整年终奖为${this.formatMoney(trap.threshold)}元（临界点以下），可多到手${Math.round(taxDiff - extraIncome)}元。`
+          };
+        }
+      }
+    }
+    return { isTrap: false };
+  },
+
+  /**
+   * 生成年终奖分析建议
+   */
+  generateBonusAnalysis(income, bonus, socialInsurance, specialDeduction, recommendSeparate, saving) {
+    const analyses = [];
+
+    if (recommendSeparate) {
+      analyses.push('单独计税更优：年终奖独立算税，不拉高综合所得税率档位。');
+      if (income - 60000 - socialInsurance - specialDeduction > 0) {
+        analyses.push('您的综合所得已使用基本减除和专项附加扣除，年终奖单独计税可避免税率跳档。');
+      }
+    } else {
+      analyses.push('合并计税更优：年终奖并入综合所得后，充分利用了基本减除费用和专项附加扣除额度。');
+      if (income < 60000) {
+        analyses.push('您的综合所得低于6万元起征点，合并计税可让年终奖享受未用完的减除额度。');
+      }
+      if (specialDeduction > 0) {
+        analyses.push('您有较多专项附加扣除项，合并计税使年终奖也享受到了扣除红利。');
+      }
+    }
+
+    if (saving > 0) {
+      analyses.push(`选择${recommendSeparate ? '单独计税' : '合并计税'}可节税${this.formatMoney(saving)}。`);
+    }
+
+    analyses.push('您可以在个税APP「工资薪金」→「奖金计税方式选择」中自由切换两种方式试算对比，以提交申报时的选择为准。');
+
+    return analyses;
+  },
+
+  /**
+   * 计算退税/补税额
+   * @param {number} taxPayable - 应纳税额
+   * @param {number} prepaidTax - 已预缴税额
+   * @returns {object}
+   */
+  calculateRefund(taxPayable, prepaidTax) {
+    const diff = prepaidTax - taxPayable;
+    return {
+      isRefund: diff > 0,
+      amount: Math.abs(Math.round(diff)),
+      label: diff > 0 ? '退税' : (diff < 0 ? '补税' : '无需退补'),
+      prepaidTax,
+      taxPayable
+    };
+  },
+
+  /**
+   * 金额格式化
+   */
+  formatMoney(amount) {
+    if (!amount) return '0';
+    return amount.toLocaleString('zh-CN', { maximumFractionDigits: 2 }) + '元';
+  }
+};
+
+
+/**
+ * rules-engine.js - 规则匹配引擎
+ * 输入用户画像 → 输出匹配的7项扣除建议
+ */
+
+const RulesEngine = {
+  deductionsData: null,
+
+  async init() {
+    this.deductionsData = TaxData.deductions;
+  },
+
+  /**
+   * 主匹配函数：根据用户画像匹配所有扣除项
+   * @param {object} profile - 用户画像（问卷采集结果）
+   * @returns {array} 匹配的扣除项列表
+   */
+  match(profile) {
+    const results = [];
+    const calc = this.calculateAge;
+
+    // 1+2. 子女扣除（婴幼儿照护 + 子女教育，每个孩子只匹配一项）
+    const childResults = this.matchChildDeductions(profile);
+    childResults.forEach(r => results.push(r));
+
+    // 3. 赡养老人
+    const elderlyResult = this.matchElderlyCare(profile);
+    if (elderlyResult) results.push(elderlyResult);
+
+    // 4. 住房贷款利息
+    const loanResult = this.matchHousingLoan(profile);
+    if (loanResult) results.push(loanResult);
+
+    // 5. 住房租金
+    const rentResult = this.matchHousingRent(profile);
+    if (rentResult) results.push(rentResult);
+
+    // 6. 继续教育
+    const eduResult = this.matchContinuingEducation(profile);
+    if (eduResult) results.push(eduResult);
+
+    // 7. 大病医疗
+    const medicalResult = this.matchMedicalExpense(profile);
+    if (medicalResult) results.push(medicalResult);
+
+    // 计算总额 - 使用 yourMonthlyShare/yourAnnualShare（您方实际可享份额，已含分配比例）
+    const totalMonthly = results.reduce((sum, r) => sum + (r.yourMonthlyShare !== undefined ? r.yourMonthlyShare : r.monthlyAmount || 0), 0);
+    const totalAnnual = results.reduce((sum, r) => sum + (r.yourAnnualShare !== undefined ? r.yourAnnualShare : r.annualAmount || 0), 0);
+
+    return {
+      deductions: results,
+      totalMonthly,
+      totalAnnual,
+      eligibleCount: results.length
+    };
+  },
+
+  /**
+   * 计算年龄（基于出生日期）
+   */
+  calculateAge(birthDate) {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+  },
+
+  /**
+   * 判断子女是否满3岁
+   */
+  isUnder3(birthDate) {
+    return this.calculateAge(birthDate) < 3;
+  },
+
+  /**
+   * 判断子女是否在全日制学历教育阶段
+   */
+  isInEducation(stage) {
+    const eduStages = ['幼儿园', '小学', '初中', '高中', '大学专科', '大学本科', '硕士', '博士'];
+    return eduStages.includes(stage);
+  },
+
+  // ===== 7项扣除匹配逻辑 =====
+
+  /**
+   * 统一匹配子女相关扣除（婴幼儿照护 + 子女教育）
+   * 核心规则：每个孩子只匹配一项，3岁以下→婴幼儿照护，3岁以上且在校→子女教育
+   * @returns {array} 返回数组（可能包含婴幼儿照护和/或子女教育两项）
+   */
+  matchChildDeductions(profile) {
+    const children = profile.children_list || [];
+    const allocation = profile.spouse_allocation || '100';
+    const results = [];
+
+    const eduStages = ['幼儿园', '小学', '初中', '高中', '大学专科', '大学本科', '硕士', '博士'];
+
+    // 为每个孩子分类
+    const infants = [];   // 3岁以下 → 婴幼儿照护
+    const eduKids = [];   // 在校教育 → 子女教育（含3岁以上未入学的学前教育）
+
+    children.forEach(child => {
+      if (!child) return;
+
+      // 优先看教育阶段判断
+      const stage = child.education_stage;
+
+      // 已毕业的不匹配任何扣除
+      if (stage === '已毕业') return;
+
+      // 3岁以下：未入学（3岁以下）
+      if (stage === '未入学（3岁以下）') {
+        infants.push(child);
+        return;
+      }
+
+      // 在校教育阶段
+      if (eduStages.includes(stage)) {
+        eduKids.push(child);
+        return;
+      }
+
+      // 未入学（3岁以上）→ 归入子女教育的学前教育阶段
+      if (stage === '未入学（3岁以上）') {
+        eduKids.push(child);
+        return;
+      }
+
+      // 如果教育阶段为空，用出生日期兜底判断
+      if (child.birth_date) {
+        if (this.isUnder3(child.birth_date)) {
+          infants.push(child);
+        } else {
+          // 3岁以上但教育阶段未知，归入子女教育
+          eduKids.push(child);
+        }
+      }
+    });
+
+    // 构建婴幼儿照护扣除项
+    if (infants.length > 0) {
+      const monthlyPerChild = 2000;
+      const monthlyAmount = infants.length * monthlyPerChild;
+
+      results.push({
+        id: 'infant_care',
+        title: '3岁以下婴幼儿照护',
+        eligible: true,
+        childCount: infants.length,
+        monthlyAmount,
+        annualAmount: monthlyAmount * 12,
+        allocationMethod: allocation === '100'
+          ? '您全额扣除（100%）'
+          : '双方各扣50%（您方每月' + (monthlyAmount * 0.5) + '元）',
+        yourMonthlyShare: allocation === '100' ? monthlyAmount : monthlyAmount * 0.5,
+        yourAnnualShare: allocation === '100' ? monthlyAmount * 12 : monthlyAmount * 0.5 * 12,
+        conditions: `${infants.length}名3岁以下子女`,
+        documents: ['子女出生医学证明', '子女人口信息'],
+        appPath: '专项附加扣除填报 → 3岁以下婴幼儿照护',
+        tips: [
+          '扣除比例为出生当月至年满3周岁前一月',
+          '子女满3周岁后应转为子女教育扣除',
+          '一个纳税年度内扣除方式不可变更'
+        ]
+      });
+    }
+
+    // 构建子女教育扣除项
+    if (eduKids.length > 0) {
+      const monthlyPerChild = 2000;
+      const monthlyAmount = eduKids.length * monthlyPerChild;
+
+      results.push({
+        id: 'child_education',
+        title: '子女教育',
+        eligible: true,
+        childCount: eduKids.length,
+        monthlyAmount,
+        annualAmount: monthlyAmount * 12,
+        allocationMethod: allocation === '100'
+          ? '您全额扣除（100%）'
+          : '双方各扣50%（您方每月' + (monthlyAmount * 0.5) + '元）',
+        yourMonthlyShare: allocation === '100' ? monthlyAmount : monthlyAmount * 0.5,
+        yourAnnualShare: allocation === '100' ? monthlyAmount * 12 : monthlyAmount * 0.5 * 12,
+        conditions: `${eduKids.length}名子女接受学历教育（含学前教育）`,
+        documents: ['子女学籍信息', '子女身份证号'],
+        appPath: '专项附加扣除填报 → 子女教育',
+        tips: [
+          '扣除期间为入学当月至教育结束当月',
+          '子女毕业后需及时修改教育终止时间',
+          '同一子女扣除比例夫妻合计不得超过100%'
+        ]
+      });
+    }
+
+    return results;
+  },
+
+  matchElderlyCare(profile) {
+    if (!profile.parents_over60) {
+      return this.buildNotEligible('elderly_care', '赡养老人', '父母未满60周岁');
+    }
+
+    if (profile.is_only_child) {
+      return {
+        id: 'elderly_care',
+        title: '赡养老人',
+        eligible: true,
+        monthlyAmount: 3000,
+        annualAmount: 36000,
+        allocationMethod: '独生子女全额扣除',
+        yourMonthlyShare: 3000,
+        yourAnnualShare: 36000,
+        conditions: '独生子女，父母年满60周岁',
+        documents: ['被赡养人身份证信息'],
+        appPath: '专项附加扣除填报 → 赡养老人',
+        tips: [
+          '独生子女每月扣除3000元',
+          '被赡养人仅限本人父母或子女均已去世的祖父母/外祖父母',
+          '岳父母/公婆不符合条件'
+        ]
+      };
+    }
+
+    // 非独生子女 - 根据分摊方式计算
+    const allocMethod = profile.elderly_allocation_method || 'average';
+    const siblingCount = parseInt(profile.sibling_count) || 2;
+    let monthlyAmount, allocationText;
+
+    if (allocMethod === 'average') {
+      // 平均分摊
+      const perPerson = Math.min(1500, Math.round(3000 / siblingCount));
+      monthlyAmount = perPerson;
+      allocationText = `平均分摊（${siblingCount}人，您每月${perPerson}元）`;
+    } else {
+      // 约定分摊或指定分摊 - 按用户输入的比例
+      const shareRatio = (profile.my_share_ratio || 50) / 100;
+      monthlyAmount = Math.min(1500, Math.round(3000 * shareRatio));
+      const methodLabel = allocMethod === 'agreed' ? '约定分摊' : '指定分摊';
+      allocationText = `${methodLabel}（您分摊${profile.my_share_ratio || 50}%，每月${monthlyAmount}元）`;
+    }
+
+    return {
+      id: 'elderly_care',
+      title: '赡养老人',
+      eligible: true,
+      monthlyAmount,
+      annualAmount: monthlyAmount * 12,
+      allocationMethod: allocationText,
+      yourMonthlyShare: monthlyAmount,
+      yourAnnualShare: monthlyAmount * 12,
+      conditions: '非独生子女，父母年满60周岁',
+      documents: ['被赡养人身份证信息', '书面分摊协议'],
+      appPath: '专项附加扣除填报 → 赡养老人',
+      tips: [
+        '非独生子女每人每月扣除不超过1500元',
+        '兄弟姐妹合计不超过3000元/月',
+        '约定分摊和指定分摊需签订书面分摊协议',
+        '被赡养人指定优先于约定分摊'
+      ]
+    };
+  },
+
+  matchHousingLoan(profile) {
+    if (!profile.has_loan || !profile.is_first_loan || profile.previously_claimed_loan) {
+      const reason = !profile.has_loan ? '无住房贷款'
+        : !profile.is_first_loan ? '非首套住房贷款'
+        : '已享受过房贷利息扣除（一生仅一次）';
+      return this.buildNotEligible('housing_loan', '住房贷款利息', reason);
+    }
+
+    const allocation = profile.loan_allocation || '100';
+    const fullMonthly = 1000;
+    const monthlyAmount = allocation === '0' ? 0 : allocation === '50' ? 500 : fullMonthly;
+    const allocationText = allocation === '0'
+      ? '配偶全额扣除（您方不扣除）'
+      : allocation === '50'
+        ? '夫妻各扣50%（您方每月500元）'
+        : '我方全额扣除（1000元/月）';
+
+    return {
+      id: 'housing_loan',
+      title: '住房贷款利息',
+      eligible: true,
+      monthlyAmount,
+      annualAmount: monthlyAmount * 12,
+      allocationMethod: allocationText,
+      yourMonthlyShare: monthlyAmount,
+      yourAnnualShare: monthlyAmount * 12,
+      conditions: '首套住房贷款，还款期内',
+      documents: ['住房贷款合同', '贷款还款支出凭证'],
+      appPath: '专项附加扣除填报 → 住房贷款利息',
+      tips: [
+        '每月扣除1000元（或夫妻各500元），最长240个月',
+        '夫妻仅一方可扣除，或双方各扣50%',
+        '一生只能享受一次首套房贷利息扣除',
+        '与住房租金不可同时享受'
+      ]
+    };
+  },
+
+  matchHousingRent(profile) {
+    if (profile.has_own_house) {
+      return this.buildNotEligible('housing_rent', '住房租金', '在主要工作城市有自有住房');
+    }
+    if (!profile.has_rent) {
+      return this.buildNotEligible('housing_rent', '住房租金', '未发生租房支出');
+    }
+    if (profile.spouse_has_house_in_work_city) {
+      return this.buildNotEligible('housing_rent', '住房租金', '配偶在您工作城市有自有住房，视同您有住房');
+    }
+
+    // 根据城市确定租金标准
+    const amount = this.getRentAmount(profile.rent_city || profile.work_city);
+
+    return {
+      id: 'housing_rent',
+      title: '住房租金',
+      eligible: true,
+      monthlyAmount: amount,
+      annualAmount: amount * 12,
+      allocationMethod: '夫妻一方扣除',
+      yourMonthlyShare: amount,
+      yourAnnualShare: amount * 12,
+      conditions: `主要工作城市租房，租金标准${amount}元/月`,
+      documents: ['住房租赁合同', '出租方信息'],
+      appPath: '专项附加扣除填报 → 住房租金',
+      tips: [
+        `租金按城市分档：1500/1100/800元每月`,
+        '夫妻同城市仅一方可扣除',
+        '与住房贷款利息不可同时享受',
+        '租金扣除城市应与主要工作城市一致'
+      ]
+    };
+  },
+
+  getRentAmount(city) {
+    if (TaxData.cities.tier1.includes(city)) return 1500;
+    if (TaxData.cities.tier2.includes(city)) return 1100;
+    return 800;
+  },
+
+  matchContinuingEducation(profile) {
+    const results = [];
+
+    // 学历继续教育
+    if (profile.has_degree_education) {
+      const months = Math.min(profile.education_months_total || 12, 12);
+      const monthlyAmount = 400;
+      results.push({
+        id: 'continuing_education_degree',
+        title: '继续教育（学历）',
+        eligible: true,
+        monthlyAmount: monthlyAmount * months / 12,
+        annualAmount: monthlyAmount * months,
+        allocationMethod: '本人扣除',
+        yourMonthlyShare: monthlyAmount,
+        yourAnnualShare: monthlyAmount * months,
+        conditions: '学历（学位）继续教育在读',
+        documents: ['学历学籍信息'],
+        appPath: '专项附加扣除填报 → 继续教育',
+        tips: [
+          '每月400元，最长48个月',
+          '仅限中国境内接受的学历教育',
+          '不同学历阶段可分别计算48个月'
+        ]
+      });
+    }
+
+    // 职业资格继续教育
+    if (profile.has_vocational_cert && profile.cert_in_directory) {
+      results.push({
+        id: 'continuing_education_cert',
+        title: '继续教育（职业资格）',
+        eligible: true,
+        monthlyAmount: 0,
+        annualAmount: 3600,
+        allocationMethod: '本人扣除',
+        yourMonthlyShare: 0,
+        yourAnnualShare: 3600,
+        conditions: '本年度取得国家职业资格目录内证书',
+        documents: ['职业资格证书信息'],
+        appPath: '专项附加扣除填报 → 继续教育',
+        tips: [
+          '取得证书当年一次性扣除3600元',
+          '仅限《国家职业资格目录》内证书',
+          '后续年度培训、年审不可扣除',
+          '国外证书不符合条件'
+        ]
+      });
+    }
+
+    if (results.length === 0) {
+      return this.buildNotEligible('continuing_education', '继续教育', '未在读学历教育或未取得职业资格证书');
+    }
+
+    // 合并多个继续教育子项
+    return results.length === 1 ? results[0] : {
+      id: 'continuing_education',
+      title: '继续教育',
+      eligible: true,
+      subItems: results,
+      monthlyAmount: results.reduce((s, r) => s + (r.monthlyAmount || 0), 0),
+      annualAmount: results.reduce((s, r) => s + (r.annualAmount || 0), 0),
+      allocationMethod: '本人扣除',
+      yourAnnualShare: results.reduce((s, r) => s + (r.yourAnnualShare || 0), 0)
+    };
+  },
+
+  matchMedicalExpense(profile) {
+    if (!profile.has_large_medical_expense || !profile.medical_self_paid) {
+      return this.buildNotEligible('medical_expense', '大病医疗', '无大病医疗支出或自付金额未超15000元');
+    }
+
+    const selfPaid = profile.medical_self_paid || 0;
+    const childrenPaid = profile.children_medical_self_paid || 0;
+    const totalPaid = selfPaid + childrenPaid;
+    const threshold = 15000;
+
+    if (totalPaid <= threshold) {
+      return this.buildNotEligible('medical_expense', '大病医疗', `自付金额${totalPaid}元未超15000元起扣线`);
+    }
+
+    const deductible = Math.min(totalPaid - threshold, 80000);
+
+    return {
+      id: 'medical_expense',
+      title: '大病医疗',
+      eligible: true,
+      monthlyAmount: 0,
+      annualAmount: deductible,
+      allocationMethod: profile.medical_deduction_by === 'self' ? '本人扣除' : profile.medical_deduction_by === 'spouse' ? '配偶扣除' : '父母一方扣除',
+      yourAnnualShare: profile.medical_deduction_by === 'self' ? deductible : 0,
+      conditions: `医保目录内自付${totalPaid}元，超起扣线${totalPaid - threshold}元`,
+      documents: ['医疗服务收费票据', '医保结算单'],
+      appPath: '汇算清缴 → 大病医疗专项附加扣除',
+      tips: [
+        '仅扣除医保目录内自付超15000元的部分',
+        '年度限额80000元',
+        '可通过"国家医保服务平台"APP查询准确金额',
+        '本人、配偶、未成年子女分别计算'
+      ]
+    };
+  },
+
+  buildNotEligible(id, title, reason) {
+    return {
+      id,
+      title,
+      eligible: false,
+      reason,
+      monthlyAmount: 0,
+      annualAmount: 0
+    };
+  }
+};
+
+
+/**
+ * error-checker.js - 易错点检测器
+ * 基于用户画像自动检测14类常见填报错误
+ */
+
+const ErrorChecker = {
+  rules: null,
+
+  async init() {
+    this.rules = TaxData.errorRules;
+  },
+
+  /**
+   * 检测所有易错点
+   * @param {object} profile - 用户画像
+   * @returns {array} 触发的错误/警告列表
+   */
+  check(profile) {
+    const triggered = [];
+
+    // 逐条检查
+    const checks = [
+      this.check01_nonOnlyChildOverLimit(profile),
+      this.check02_allocationOver100(profile),
+      this.check03_educationNotTerminated(profile),
+      this.check04_loanAndRentBoth(profile),
+      this.check05_includeInLaws(profile),
+      this.check06_certNotInDirectory(profile),
+      this.check07_duplicateLoanClaim(profile),
+      this.check08_medicalOutOfCatalog(profile),
+      this.check09_educationOver48Months(profile),
+      this.check10_rentCityMismatch(profile),
+      this.check11_infantNotSwitched(profile),
+      this.check12_spouseBothClaimLoan(profile),
+      this.check13_noWrittenAgreement(profile),
+      this.check14_hobbyCert(profile)
+    ];
+
+    for (const check of checks) {
+      if (check && check.triggered) {
+        // 从规则定义中补全 category 字段
+        const ruleDef = this.rules.find(r => r.id === check.id);
+        if (ruleDef && !check.category) {
+          check.category = ruleDef.category;
+        }
+        if (!check.category) check.category = '其他';
+        triggered.push(check);
+      }
+    }
+
+    return {
+      errors: triggered.filter(t => t.severity === 'error'),
+      warnings: triggered.filter(t => t.severity === 'warning'),
+      all: triggered,
+      hasIssues: triggered.length > 0
+    };
+  },
+
+  // err_01: 非独生子女赡养老人超限
+  check01_nonOnlyChildOverLimit(profile) {
+    if (!profile.parents_over60 || profile.is_only_child) return null;
+    const shareRatio = (profile.my_share_ratio || 50) / 100;
+    const monthlyAmount = Math.round(3000 * shareRatio);
+    if (monthlyAmount > 1500) {
+      return {
+        id: 'err_01',
+        triggered: true,
+        severity: 'error',
+        title: '非独生子女赡养老人超限',
+        message: `非独生子女每月赡养老人扣除不得超过1500元，您当前分摊${profile.my_share_ratio || 50}%（${monthlyAmount}元/月）已超标。`,
+        solution: '与兄弟姐妹协商调整分摊比例，每人每月不超过1500元，并签订书面分摊协议。'
+      };
+    }
+    return null;
+  },
+
+  // err_02: 夫妻扣除比例合计超100%
+  check02_allocationOver100(profile) {
+    if (!profile.has_children || !profile.has_spouse) return null;
+    const allocation = parseInt(profile.spouse_allocation) || 100;
+    // 此处简化检测，实际需用户确认配偶选择
+    if (allocation > 100) {
+      return {
+        id: 'err_02',
+        triggered: true,
+        severity: 'error',
+        title: '夫妻扣除比例合计超100%',
+        message: '夫妻对同一子女的扣除比例合计不能超过100%。',
+        solution: '确认夫妻双方扣除比例合计为100%（一方100%或双方各50%）。'
+      };
+    }
+    return null;
+  },
+
+  // err_03: 子女教育终止未更新
+  check03_educationNotTerminated(profile) {
+    if (!profile.has_children) return null;
+    const children = profile.children_list || [];
+    const graduated = children.find(c => c.education_stage === '已毕业');
+    if (graduated) {
+      return {
+        id: 'err_03',
+        triggered: true,
+        severity: 'warning',
+        title: '子女教育终止未更新',
+        message: '子女已毕业，应在个税APP中录入教育终止时间（毕业当月），不可继续享受子女教育扣除。',
+        solution: '在个税APP中修改子女教育扣除的终止月份为毕业当月。'
+      };
+    }
+    return null;
+  },
+
+  // err_04: 房贷与租金同时扣除
+  check04_loanAndRentBoth(profile) {
+    if (profile.has_loan && profile.has_rent && !profile.has_own_house === false) {
+      // 如果有自有住房且有贷款，同时又填了租金（不太常见但检查）
+      return {
+        id: 'err_04',
+        triggered: true,
+        severity: 'error',
+        title: '房贷与租金同时扣除',
+        message: '住房贷款利息与住房租金不可同时享受，请二选一。',
+        solution: '根据实际情况选择更优惠的一项：有首套房贷选房贷利息（1000元/月），无自有住房选租金（800-1500元/月）。'
+      };
+    }
+    return null;
+  },
+
+  // err_05: 赡养对象填写错误
+  check05_includeInLaws(profile) {
+    if (!profile.parents_over60 || !profile.include_in_laws) return null;
+    return {
+      id: 'err_05',
+      triggered: true,
+      severity: 'error',
+      title: '赡养对象填写错误',
+      message: '被赡养人仅限本人年满60周岁的父母，岳父母/公婆不符合条件。',
+      solution: '删除岳父母/公婆信息，仅填报本人父母。配偶的父母由配偶自行填报。'
+    };
+  },
+
+  // err_06: 非国家认可证书
+  check06_certNotInDirectory(profile) {
+    if (!profile.has_vocational_cert || profile.cert_in_directory) return null;
+    return {
+      id: 'err_06',
+      triggered: true,
+      severity: 'error',
+      title: '非国家认可证书',
+      message: '仅取得《国家职业资格目录》内证书方可扣除。国外证书、非目录内证书不符合条件。',
+      solution: '通过"国务院客户端"小程序搜索"国家职业资格目录"查询您的证书是否在列。'
+    };
+  },
+
+  // err_07: 首套房贷重复扣除
+  check07_duplicateLoanClaim(profile) {
+    if (!profile.has_loan || !profile.previously_claimed_loan) return null;
+    return {
+      id: 'err_07',
+      triggered: true,
+      severity: 'error',
+      title: '首套房贷重复扣除',
+      message: '纳税人一生只能享受一次首套住房贷款利息扣除。已享受过房贷利息扣除的，不得再次填报。',
+      solution: '如之前已申报过房贷利息扣除，即使卖房后再次购房也不可重复享受。'
+    };
+  },
+
+  // err_08: 大病医疗含目录外费用
+  check08_medicalOutOfCatalog(profile) {
+    if (!profile.has_large_medical_expense) return null;
+    // 此处提醒用户确认金额来源
+    return {
+      id: 'err_08',
+      triggered: true,
+      severity: 'warning',
+      title: '请确认大病医疗金额来源',
+      message: '大病医疗仅扣除医保目录范围内的自付部分。请确保填写的金额来自"国家医保服务平台"APP查询结果，而非医疗费用总金额。',
+      solution: '下载"国家医保服务平台"APP，首页→年度费用汇总查询，获取医保目录内自付金额。'
+    };
+  },
+
+  // err_09: 学历继续教育超48个月
+  check09_educationOver48Months(profile) {
+    if (!profile.has_degree_education) return null;
+    // 由于问卷只收集当年月数，这里给出提醒
+    return {
+      id: 'err_09',
+      triggered: true,
+      severity: 'warning',
+      title: '注意学历继续教育扣除期限',
+      message: '学历继续教育扣除期限最长48个月。如您的学历教育已超过48个月，超期部分不可继续扣除。',
+      solution: '确认入学至当前的实际月数，如超48个月需在个税APP中调整扣除终止月份。不同学历阶段可分别计算。'
+    };
+  },
+
+  // err_10: 租金扣除城市与工作城市不符
+  check10_rentCityMismatch(profile) {
+    if (!profile.has_rent || !profile.rent_city || !profile.work_city) return null;
+    if (profile.rent_city !== profile.work_city) {
+      return {
+        id: 'err_10',
+        triggered: true,
+        severity: 'warning',
+        title: '租金扣除城市与工作城市不符',
+        message: `您的主要工作城市为${profile.work_city}，但租金扣除城市为${profile.rent_city}。住房租金应在主要工作城市发生。`,
+        solution: '确认租金扣除城市与主要工作城市一致。如异地工作租房，以工作城市为准。'
+      };
+    }
+    return null;
+  },
+
+  // err_11: 婴幼儿满3岁未转为子女教育
+  check11_infantNotSwitched(profile) {
+    if (!profile.has_children) return null;
+    const children = profile.children_list || [];
+    const today = new Date();
+    const turned3 = children.find(c => {
+      if (!c.birth_date) return false;
+      const birth = new Date(c.birth_date);
+      const age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      const actualAge = m < 0 || (m === 0 && today.getDate() < birth.getDate()) ? age - 1 : age;
+      return actualAge >= 3 && (c.education_stage === '未入学（3岁以下）' || c.education_stage === '未入学（3岁以上）');
+    });
+    if (turned3) {
+      return {
+        id: 'err_11',
+        triggered: true,
+        severity: 'warning',
+        title: '婴幼儿满3岁未转为子女教育',
+        message: '子女年满3周岁后，应从婴幼儿照护转为子女教育扣除。',
+        solution: '在个税APP中停止婴幼儿照护扣除，新增子女教育扣除（入园/入学当月起）。'
+      };
+    }
+    return null;
+  },
+
+  // err_12: 夫妻同时填报同一房贷
+  check12_spouseBothClaimLoan(profile) {
+    // 问卷中无法直接获知配偶是否也填报，给出提醒
+    if (!profile.has_loan || !profile.is_first_loan) return null;
+    return {
+      id: 'err_12',
+      triggered: true,
+      severity: 'warning',
+      title: '注意夫妻不可同时填报房贷',
+      message: '住房贷款利息仅可由夫妻一方扣除，请确认配偶未在个税APP中重复填报同一套住房的房贷利息。',
+      solution: '夫妻协商确定由一方扣除（1000元/月），另一方确认未填报该扣除记录。'
+    };
+  },
+
+  // err_13: 赡养老人分摊无协议
+  check13_noWrittenAgreement(profile) {
+    if (!profile.parents_over60 || profile.is_only_child) return null;
+    if (!profile.has_written_agreement) {
+      return {
+        id: 'err_13',
+        triggered: true,
+        severity: 'warning',
+        title: '赡养老人分摊无书面协议',
+        message: '非独生子女分摊赡养老人扣除需签订书面分摊协议，且兄弟姐妹分摊比例须一致。',
+        solution: '与兄弟姐妹签订书面分摊协议，明确各自分摊比例（每人不超过1500元/月），三方留存备查。'
+      };
+    }
+    return null;
+  },
+
+  // err_14: 兴趣爱好证书
+  check14_hobbyCert(profile) {
+    if (!profile.has_vocational_cert) return null;
+    // 如果用户选择了"不确定"证书是否在目录内
+    if (profile.cert_in_directory === false) {
+      return {
+        id: 'err_14',
+        triggered: true,
+        severity: 'error',
+        title: '兴趣爱好类证书不可扣除',
+        message: '兴趣爱好类培训证书（如茶艺师、西式面点师、保育员等）不在《国家职业资格目录》内，不可申报继续教育扣除。',
+        solution: '仅取得国家职业资格目录内证书（如注册会计师、教师资格证等）的当年方可扣除3600元。'
+      };
+    }
+    return null;
+  }
+};
+
+
+/**
+ * report.js - 报告生成器
+ * 将规则匹配结果+计算结果+易错点检测整合为个性化填报指引报告
+ */
+
+const Report = {
+  /**
+   * 生成完整报告HTML
+   * @param {object} matchResult - RulesEngine.match()结果
+   * @param {object} bonusResult - Calculator.compareBonusTax()结果
+   * @param {object} errorResult - ErrorChecker.check()结果
+   * @param {object} profile - 用户画像
+   * @returns {string} 报告HTML
+   */
+  generate(matchResult, bonusResult, errorResult, profile) {
+    const income = profile.annual_income || 0;
+    const socialInsurance = profile.social_insurance || 0;
+    const prepaidTax = profile.prepaid_tax || 0;
+    const totalDeduction = matchResult.totalAnnual;
+
+    // 计算其他扣除合计（年金+商业健康险+个人养老金+其他）
+    const otherDeduction = this.calculateOtherDeductions(profile);
+
+    // 计算应纳税额（含专项扣除+专项附加扣除+其他扣除）
+    const calcResult = Calculator.calculateIncomeTax(income, socialInsurance, totalDeduction, otherDeduction);
+
+    // 计算不填专项附加扣除时的应纳税额（对比）
+    const calcWithoutDeduction = Calculator.calculateIncomeTax(income, socialInsurance, 0, otherDeduction);
+
+    // 退税/补税
+    const refundResult = Calculator.calculateRefund(calcResult.taxPayable, prepaidTax);
+
+    return `
+      <div class="report-container" id="reportContent">
+        ${this.renderHeader(profile)}
+        ${this.renderSummary(matchResult, calcResult, refundResult, profile, otherDeduction)}
+        ${this.renderBonusComparison(bonusResult, profile)}
+        ${this.renderDeductionDetails(matchResult)}
+        ${this.renderOtherDeductions(profile, otherDeduction)}
+        ${this.renderErrorWarnings(errorResult)}
+        ${this.renderOperationGuide(matchResult, bonusResult)}
+        ${this.renderDisclaimer()}
+        ${this.renderExportButtons()}
+      </div>
+    `;
+  },
+
+  // 计算其他扣除总额
+  calculateOtherDeductions(profile) {
+    let total = 0;
+    // 年金：个人缴费不超过工资基数4%，此处取用户填写金额
+    if (profile.has_annuity && profile.annuity_amount) total += Number(profile.annuity_amount);
+    // 商业健康险：限额2400元/年
+    if (profile.has_health_insurance && profile.health_insurance_amount) {
+      total += Math.min(2400, Number(profile.health_insurance_amount));
+    }
+    // 个人养老金：限额12000元/年
+    if (profile.has_pension && profile.pension_amount) {
+      total += Math.min(12000, Number(profile.pension_amount));
+    }
+    // 其他扣除项目（用户手动填写）
+    if (profile.other_deduct_amount) {
+      total += Number(profile.other_deduct_amount);
+    }
+    // 费用合计（展业成本等，用户手动填写）
+    if (profile.expense_total_amount) {
+      total += Number(profile.expense_total_amount);
+    }
+    return total;
+  },
+
+  // 渲染其他扣除详情
+  renderOtherDeductions(profile, totalAmount) {
+    if (totalAmount <= 0) return '';
+
+    const items = [];
+    if (profile.has_annuity && profile.annuity_amount) {
+      items.push({
+        title: '企业年金/职业年金',
+        amount: Number(profile.annuity_amount),
+        desc: '个人缴费部分，不超过本人缴费工资计税基数4%',
+        tip: '通常由单位在预扣预缴时自动扣除，汇算时核对金额即可'
+      });
+    }
+    if (profile.has_health_insurance && profile.health_insurance_amount) {
+      items.push({
+        title: '商业健康保险',
+        amount: Math.min(2400, Number(profile.health_insurance_amount)),
+        desc: '限额2400元/年（200元/月）',
+        tip: '保单须注明税优识别码方可在个税APP中申报扣除'
+      });
+    }
+    if (profile.has_pension && profile.pension_amount) {
+      items.push({
+        title: '个人养老金',
+        amount: Math.min(12000, Number(profile.pension_amount)),
+        desc: '限额12000元/年',
+        tip: '可通过个税APP「个人养老金扣除管理」→「一站式申报」自动获取缴费信息'
+      });
+    }
+    if (profile.other_deduct_amount) {
+      items.push({
+        title: '其他扣除项目',
+        amount: Number(profile.other_deduct_amount),
+        desc: '税延养老保险、允许扣除的税费、公务用车通讯补贴等',
+        tip: '请妥善留存相关凭证备查'
+      });
+    }
+    if (profile.expense_total_amount) {
+      items.push({
+        title: '费用合计（展业成本等）',
+        amount: Number(profile.expense_total_amount),
+        desc: '保险营销员/证券经纪人的展业成本（佣金收入×25%），或其他依法可扣除的费用',
+        tip: '展业成本按佣金收入25%计算，请自行计算后填入'
+      });
+    }
+
+    return `
+      <div class="report-section">
+        <h2 class="report-section-title">其他扣除项目</h2>
+        <div class="summary-cards" style="grid-template-columns: 1fr;">
+          <div class="summary-card highlight">
+            <div class="card-value">${Calculator.formatMoney(totalAmount)}</div>
+            <div class="card-label">其他扣除合计</div>
+          </div>
+        </div>
+        ${items.map(item => `
+          <div class="deduction-card">
+            <div class="deduction-header">
+              <h3>${item.title}</h3>
+              <span class="amount-badge">${Calculator.formatMoney(item.amount)}/年</span>
+            </div>
+            <div class="deduction-body">
+              <div class="deduction-info">
+                <div class="info-row">
+                  <span class="info-label">扣除标准</span>
+                  <span class="info-value">${item.desc}</span>
+                </div>
+              </div>
+              <div class="deduction-tips">
+                <p class="tips-title">操作提示</p>
+                <ul><li>${item.tip}</li></ul>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  renderHeader(profile) {
+    const date = new Date().toLocaleDateString('zh-CN');
+    return `
+      <div class="report-header">
+        <h1>个人所得税专项附加扣除填报指引</h1>
+        <p class="report-date">生成日期：${date}</p>
+        <div class="report-meta">
+          <span>年度综合所得：${Calculator.formatMoney(profile.annual_income || 0)}</span>
+          ${profile.annual_bonus ? `<span>年终奖：${Calculator.formatMoney(profile.annual_bonus)}</span>` : ''}
+        </div>
+      </div>
+    `;
+  },
+
+  renderSummary(matchResult, calcResult, refundResult, profile, otherDeduction) {
+    const eligibleDeductions = matchResult.deductions.filter(d => d.eligible);
+    const socialInsurance = (profile && profile.social_insurance) || 0;
+    const otherDeduct = otherDeduction || 0;
+    const totalAllDeductions = 60000 + socialInsurance + matchResult.totalAnnual + otherDeduct;
+
+    return `
+      <div class="report-section summary-section">
+        <h2 class="report-section-title">扣除汇总</h2>
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="card-value">${matchResult.eligibleCount}</div>
+            <div class="card-label">专项附加扣除项</div>
+          </div>
+          <div class="summary-card highlight">
+            <div class="card-value">${Calculator.formatMoney(totalAllDeductions)}</div>
+            <div class="card-label">年度扣除总额</div>
+          </div>
+          <div class="summary-card ${refundResult.isRefund ? 'positive' : 'negative'}">
+            <div class="card-value">${Calculator.formatMoney(refundResult.amount)}</div>
+            <div class="card-label">${refundResult.label}</div>
+          </div>
+        </div>
+
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>扣除项目</th>
+              <th>月度金额</th>
+              <th>年度总额</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>基本减除费用</td>
+              <td>5,000元</td>
+              <td><strong>60,000元</strong></td>
+              <td><span class="status-tag eligible">自动享受</span></td>
+            </tr>
+            ${socialInsurance > 0 ? `
+            <tr>
+              <td>专项扣除（三险一金）</td>
+              <td>—</td>
+              <td><strong>${Calculator.formatMoney(socialInsurance)}</strong></td>
+              <td><span class="status-tag eligible">单位代扣</span></td>
+            </tr>
+            ` : ''}
+            ${eligibleDeductions.map(d => `
+              <tr>
+                <td>${d.title}</td>
+                <td>${(d.yourMonthlyShare !== undefined ? d.yourMonthlyShare : d.monthlyAmount) > 0 ? Calculator.formatMoney(d.yourMonthlyShare !== undefined ? d.yourMonthlyShare : d.monthlyAmount) : '—'}</td>
+                <td><strong>${Calculator.formatMoney(d.yourAnnualShare !== undefined ? d.yourAnnualShare : d.annualAmount)}</strong></td>
+                <td><span class="status-tag eligible">可享受</span></td>
+              </tr>
+            `).join('')}
+            ${otherDeduct > 0 ? `
+            <tr>
+              <td>其他扣除（年金/健康险/养老金/展业成本等）</td>
+              <td>—</td>
+              <td><strong>${Calculator.formatMoney(otherDeduct)}</strong></td>
+              <td><span class="status-tag eligible">可享受</span></td>
+            </tr>
+            ` : ''}
+            ${matchResult.deductions.filter(d => !d.eligible).map(d => `
+              <tr class="not-eligible-row">
+                <td>${d.title}</td>
+                <td>—</td>
+                <td>—</td>
+                <td><span class="status-tag not-eligible">不符合</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td><strong>合计扣除</strong></td>
+              <td></td>
+              <td><strong>${Calculator.formatMoney(totalAllDeductions)}</strong></td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="tax-detail-box">
+          <div class="tax-detail-row">
+            <span>年度综合所得</span>
+            <span>${Calculator.formatMoney(calcResult.income)}</span>
+          </div>
+          <div class="tax-detail-row">
+            <span>减：基本减除费用（6万/年）</span>
+            <span>-${Calculator.formatMoney(calcResult.basicDeduction)}</span>
+          </div>
+          ${socialInsurance > 0 ? `
+          <div class="tax-detail-row">
+            <span>减：专项扣除（三险一金）</span>
+            <span>-${Calculator.formatMoney(socialInsurance)}</span>
+          </div>
+          ` : ''}
+          <div class="tax-detail-row">
+            <span>减：专项附加扣除</span>
+            <span>-${Calculator.formatMoney(matchResult.totalAnnual)}</span>
+          </div>
+          ${otherDeduct > 0 ? `
+          <div class="tax-detail-row">
+            <span>减：其他扣除</span>
+            <span>-${Calculator.formatMoney(otherDeduct)}</span>
+          </div>
+          ` : ''}
+          <div class="tax-detail-row total">
+            <span>应纳税所得额</span>
+            <span>${Calculator.formatMoney(calcResult.taxableIncome)}</span>
+          </div>
+          <div class="tax-detail-row">
+            <span>适用税率</span>
+            <span>${(calcResult.taxRate * 100).toFixed(0)}%</span>
+          </div>
+          <div class="tax-detail-row total">
+            <span>应纳税额</span>
+            <span class="tax-amount">${Calculator.formatMoney(calcResult.taxPayable)}</span>
+          </div>
+          <div class="tax-detail-row">
+            <span>已预缴税额</span>
+            <span>${Calculator.formatMoney(refundResult.prepaidTax)}</span>
+          </div>
+          <div class="tax-detail-row ${refundResult.isRefund ? 'refund' : 'pay'} total">
+            <span>${refundResult.label}</span>
+            <span class="${refundResult.isRefund ? 'refund-amount' : 'pay-amount'}">${Calculator.formatMoney(refundResult.amount)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  renderBonusComparison(bonusResult, profile) {
+    if (!bonusResult.hasBonus) return '';
+
+    const separate = bonusResult.separate;
+    const merged = bonusResult.merged;
+    const recommendClass = bonusResult.recommend === 'separate' ? 'separate' : 'merged';
+
+    return `
+      <div class="report-section bonus-section">
+        <h2 class="report-section-title">年终奖计税方案对比</h2>
+        <p class="section-desc">您的年终奖 ${Calculator.formatMoney(profile.annual_bonus)} 有两种计税方式，请对比后自行选择：</p>
+
+        <div class="bonus-compare">
+          <div class="bonus-card ${recommendClass === 'separate' ? 'recommended' : ''}">
+            <div class="bonus-card-header">
+              <span class="bonus-label">方案A：单独计税</span>
+              ${recommendClass === 'separate' ? '<span class="recommend-badge">推荐</span>' : ''}
+            </div>
+            <div class="bonus-card-body">
+              <div class="bonus-detail-row">
+                <span>年终奖税率</span>
+                <span>${(separate.bonusTaxRate * 100).toFixed(0)}%</span>
+              </div>
+              <div class="bonus-detail-row">
+                <span>年终奖应纳税</span>
+                <span>${Calculator.formatMoney(separate.bonusTax)}</span>
+              </div>
+              <div class="bonus-detail-row">
+                <span>综合所得应纳税</span>
+                <span>${Calculator.formatMoney(separate.incomeTax)}</span>
+              </div>
+              <div class="bonus-detail-row total">
+                <span>总税额合计</span>
+                <span class="bonus-total">${Calculator.formatMoney(separate.totalTax)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bonus-vs">VS</div>
+
+          <div class="bonus-card ${recommendClass === 'merged' ? 'recommended' : ''}">
+            <div class="bonus-card-header">
+              <span class="bonus-label">方案B：合并计税</span>
+              ${recommendClass === 'merged' ? '<span class="recommend-badge">推荐</span>' : ''}
+            </div>
+            <div class="bonus-card-body">
+              <div class="bonus-detail-row">
+                <span>合并后税率</span>
+                <span>${(merged.taxRate * 100).toFixed(0)}%</span>
+              </div>
+              <div class="bonus-detail-row">
+                <span>合并后应纳税所得额</span>
+                <span>${Calculator.formatMoney(merged.taxableIncome)}</span>
+              </div>
+              <div class="bonus-detail-row">
+                <span>速算扣除数</span>
+                <span>${Calculator.formatMoney(merged.quickDeduction)}</span>
+              </div>
+              <div class="bonus-detail-row total">
+                <span>总税额合计</span>
+                <span class="bonus-total">${Calculator.formatMoney(merged.totalTax)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        ${bonusResult.saving > 0 ? `
+          <div class="bonus-savings">
+            <span>选择「${bonusResult.recommendLabel}」可节税</span>
+            <strong>${Calculator.formatMoney(bonusResult.saving)}</strong>
+          </div>
+        ` : `
+          <div class="bonus-savings neutral">
+            <span>两种方案税额相同，可根据自身情况选择</span>
+          </div>
+        `}
+
+        ${bonusResult.trapWarning && bonusResult.trapWarning.isTrap ? `
+          <div class="trap-warning">
+            <div class="trap-icon">⚠️</div>
+            <div class="trap-content">
+              <strong>临界点陷阱提醒</strong>
+              <p>${bonusResult.trapWarning.message}</p>
+              <p class="trap-suggestion">${bonusResult.trapWarning.suggestion}</p>
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="bonus-analysis">
+          ${bonusResult.analysis.map(a => `<p>· ${a}</p>`).join('')}
+        </div>
+
+        <div class="bonus-operation">
+          <p class="operation-label">操作路径：</p>
+          <p>个税APP → 工资薪金 → 奖金计税方式选择 → 选择「${bonusResult.recommendLabel}」→ 提交申报</p>
+        </div>
+      </div>
+    `;
+  },
+
+  renderDeductionDetails(matchResult) {
+    const eligible = matchResult.deductions.filter(d => d.eligible);
+    if (eligible.length === 0) {
+      return `
+        <div class="report-section">
+          <h2 class="report-section-title">扣除项详情</h2>
+          <p class="empty-hint">根据您填写的信息，暂无符合条件的专项附加扣除项。</p>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="report-section">
+        <h2 class="report-section-title">扣除项详情与操作指引</h2>
+        ${eligible.map(d => this.renderDeductionCard(d)).join('')}
+      </div>
+    `;
+  },
+
+  renderDeductionCard(d) {
+    const displayMonthly = d.yourMonthlyShare !== undefined ? d.yourMonthlyShare : d.monthlyAmount;
+    const displayAnnual = d.yourAnnualShare !== undefined ? d.yourAnnualShare : d.annualAmount;
+    return `
+      <div class="deduction-card" id="deduction_${d.id}">
+        <div class="deduction-header">
+          <h3>${d.title}</h3>
+          <span class="amount-badge">${displayAnnual > 0 ? Calculator.formatMoney(displayAnnual) + '/年' : '据实扣除'}</span>
+        </div>
+        <div class="deduction-body">
+          <div class="deduction-info">
+            <div class="info-row">
+              <span class="info-label">您方可扣月度金额</span>
+              <span class="info-value">${displayMonthly > 0 ? Calculator.formatMoney(displayMonthly) + '/月' : '—'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">分配方式</span>
+              <span class="info-value">${d.allocationMethod || '—'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">适用条件</span>
+              <span class="info-value">${d.conditions || '—'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">所需材料</span>
+              <span class="info-value">${(d.documents || []).join('、') || '—'}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">APP操作路径</span>
+              <span class="info-value">${d.appPath || '—'}</span>
+            </div>
+          </div>
+          ${d.tips && d.tips.length > 0 ? `
+            <div class="deduction-tips">
+              <p class="tips-title">注意事项</p>
+              <ul>
+                ${d.tips.map(t => `<li>${t}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  },
+
+  renderErrorWarnings(errorResult) {
+    if (!errorResult.hasIssues) {
+      return `
+        <div class="report-section no-error-section">
+          <div class="no-error-icon">✓</div>
+          <p>未检测到常见填报错误，您的扣除信息看起来没问题！</p>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="report-section error-section">
+        <h2 class="report-section-title">风险提示</h2>
+        <p class="section-desc">根据您填写的信息，检测到以下需要注意的问题：</p>
+
+        ${errorResult.errors.length > 0 ? `
+          <div class="error-group">
+            <h3 class="error-group-title">严重错误（必须修改）</h3>
+            ${errorResult.errors.map(e => `
+              <div class="error-item error">
+                <div class="error-item-header">
+                  <span class="error-title">${e.title}</span>
+                  <span class="error-category">${e.category}</span>
+                </div>
+                <p class="error-message">${e.message}</p>
+                <p class="error-solution">建议：${e.solution}</p>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        ${errorResult.warnings.length > 0 ? `
+          <div class="error-group">
+            <h3 class="error-group-title warning-title">注意事项（建议确认）</h3>
+            ${errorResult.warnings.map(w => `
+              <div class="error-item warning">
+                <div class="error-item-header">
+                  <span class="error-title">${w.title}</span>
+                  <span class="error-category">${w.category}</span>
+                </div>
+                <p class="error-message">${w.message}</p>
+                <p class="error-solution">建议：${w.solution}</p>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  },
+
+  renderOperationGuide(matchResult, bonusResult) {
+    const eligible = matchResult.deductions.filter(d => d.eligible);
+    return `
+      <div class="report-section guide-section">
+        <h2 class="report-section-title">操作指引</h2>
+        <div class="guide-steps">
+          <div class="guide-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <strong>打开「个人所得税」APP</strong>
+              <p>登录并完成实名认证</p>
+            </div>
+          </div>
+          ${eligible.map((d, i) => `
+            <div class="guide-step">
+              <div class="step-number">${i + 2}</div>
+              <div class="step-content">
+                <strong>填报「${d.title}」</strong>
+                <p>路径：${d.appPath}</p>
+                <p>金额：${d.monthlyAmount > 0 ? Calculator.formatMoney(d.monthlyAmount) + '/月' : Calculator.formatMoney(d.annualAmount) + '/年'}</p>
+              </div>
+            </div>
+          `).join('')}
+          ${bonusResult.hasBonus ? `
+            <div class="guide-step">
+              <div class="step-number">${eligible.length + 2}</div>
+              <div class="step-content">
+                <strong>选择年终奖计税方式</strong>
+                <p>路径：工资薪金 → 奖金计税方式选择</p>
+                <p>推荐：${bonusResult.recommendLabel}（节税${Calculator.formatMoney(bonusResult.saving)}）</p>
+              </div>
+            </div>
+          ` : ''}
+          <div class="guide-step">
+            <div class="step-number">${eligible.length + (bonusResult.hasBonus ? 3 : 2)}</div>
+            <div class="step-content">
+              <strong>提交年度汇算申报</strong>
+              <p>确认各项扣除信息无误后提交</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  renderDisclaimer() {
+    return `
+      <div class="report-section disclaimer">
+        <p>本指引基于您填写的信息自动生成，仅供参考。具体扣除金额以「个人所得税」APP核算结果为准。如有疑问请咨询当地税务机关（电话：12366）。</p>
+        <p>政策依据：《个人所得税专项附加扣除暂行办法》、财政部 税务总局公告2023年第30号（全年一次性奖金政策延续至2027年12月31日）。</p>
+      </div>
+    `;
+  },
+
+  renderExportButtons() {
+    return `
+      <div class="report-actions">
+        <button class="btn btn-primary btn-lg" onclick="Report.exportAsImage()">保存为图片</button>
+        <button class="btn btn-outline btn-lg" onclick="Report.shareReport()">分享</button>
+        <button class="btn btn-outline btn-lg" onclick="Report.exportAsText()">复制报告内容</button>
+        <button class="btn btn-secondary btn-lg" onclick="App.goBackHome()">返回首页</button>
+      </div>
+      <div class="install-hint" id="installHint">
+        <p>💡 提示：点击浏览器菜单中的「添加到主屏幕」，下次可直接从桌面打开使用</p>
+      </div>
+    `;
+  },
+
+  // 导出为图片（保存到相册）
+  exportAsImage() {
+    App.showToast('正在生成图片...');
+
+    const target = document.getElementById('reportContent');
+    if (!target) {
+      App.showToast('未找到报告内容');
+      return;
+    }
+
+    // 使用原生Canvas逐元素绘制报告图片（兼容所有手机浏览器）
+    setTimeout(function() { Report.renderReportToCanvas(target); }, 100);
+  },
+
+  /**
+   * 将报告DOM逐元素渲染到Canvas，然后打开为图片供用户长按保存
+   * 这个方法不依赖外部库，不依赖SVG foreignObject，在所有手机浏览器上都能工作
+   */
+  renderReportToCanvas(target) {
+    try {
+      // 获取报告中所有可见元素
+      const canvasWidth = 420;
+      const padding = 20;
+      const lineHeight = 22;
+      let y = padding;
+
+      // 收集要绘制的内容
+      const blocks = [];
+
+      // 报告标题
+      const header = target.querySelector('.report-header');
+      if (header) {
+        const h1 = header.querySelector('h1');
+        const date = header.querySelector('.report-date');
+        const meta = header.querySelectorAll('.report-meta span');
+        if (h1) blocks.push({ type: 'title', text: h1.textContent.trim() });
+        if (date) blocks.push({ type: 'subtitle', text: date.textContent.trim() });
+        meta.forEach(function(m) { blocks.push({ type: 'text', text: m.textContent.trim(), color: '#666' }); });
+        blocks.push({ type: 'gap', height: 10 });
+      }
+
+      // 遍历所有section
+      target.querySelectorAll('.report-section').forEach(function(section) {
+        var sectionTitle = section.querySelector('.report-section-title, h2');
+        if (sectionTitle) {
+          blocks.push({ type: 'gap', height: 8 });
+          blocks.push({ type: 'sectionTitle', text: sectionTitle.textContent.trim() });
+        }
+
+        var sectionDesc = section.querySelector('.section-desc');
+        if (sectionDesc) blocks.push({ type: 'desc', text: sectionDesc.textContent.trim() });
+
+        // 汇总卡片
+        section.querySelectorAll('.summary-card').forEach(function(card) {
+          var val = card.querySelector('.card-value');
+          var label = card.querySelector('.card-label');
+          if (val && label) {
+            blocks.push({ type: 'card', value: val.textContent.trim(), label: label.textContent.trim() });
+          }
+        });
+
+        // 表格行
+        var tables = section.querySelectorAll('.report-table');
+        tables.forEach(function(table) {
+          var rows = table.querySelectorAll('tbody tr');
+          rows.forEach(function(row) {
+            var cells = row.querySelectorAll('td');
+            if (cells.length >= 4) {
+              var name = cells[0].textContent.trim();
+              var monthly = cells[1].textContent.trim();
+              var annual = cells[2].textContent.trim();
+              var status = cells[3].textContent.trim();
+              blocks.push({ type: 'tableRow', name: name, monthly: monthly, annual: annual, status: status });
+            }
+          });
+          var tfootRow = table.querySelector('tfoot tr');
+          if (tfootRow) {
+            var cells = tfootRow.querySelectorAll('td');
+            if (cells.length >= 3) {
+              blocks.push({ type: 'tableRow', name: cells[0].textContent.trim(), monthly: '', annual: cells[2].textContent.trim(), status: '', bold: true });
+            }
+          }
+        });
+
+        // 税额计算明细
+        section.querySelectorAll('.tax-detail-row').forEach(function(row) {
+          var spans = row.querySelectorAll('span');
+          if (spans.length >= 2) {
+            var label = spans[0].textContent.trim();
+            var value = spans[1].textContent.trim();
+            var isTotal = row.classList.contains('total');
+            blocks.push({ type: 'detailRow', label: label, value: value, bold: isTotal });
+          }
+        });
+
+        // 年终奖对比卡片
+        section.querySelectorAll('.bonus-card').forEach(function(card) {
+          var label = card.querySelector('.bonus-label');
+          if (label) blocks.push({ type: 'bonusTitle', text: label.textContent.trim() });
+          card.querySelectorAll('.bonus-detail-row').forEach(function(row) {
+            var spans = row.querySelectorAll('span');
+            if (spans.length >= 2) {
+              blocks.push({ type: 'detailRow', label: spans[0].textContent.trim(), value: spans[1].textContent.trim(), bold: row.classList.contains('total') });
+            }
+          });
+        });
+
+        // 节税提示
+        var savings = section.querySelector('.bonus-savings');
+        if (savings) {
+          var span = savings.querySelector('span');
+          var strong = savings.querySelector('strong');
+          if (span && strong) {
+            blocks.push({ type: 'highlight', text: span.textContent.trim() + strong.textContent.trim() });
+          } else if (span) {
+            blocks.push({ type: 'highlight', text: span.textContent.trim() });
+          }
+        }
+
+        // 扣除详情卡片
+        section.querySelectorAll('.deduction-card').forEach(function(card) {
+          var h3 = card.querySelector('h3');
+          var badge = card.querySelector('.amount-badge');
+          if (h3) {
+            blocks.push({ type: 'gap', height: 6 });
+            blocks.push({ type: 'cardHeader', title: h3.textContent.trim(), badge: badge ? badge.textContent.trim() : '' });
+          }
+          card.querySelectorAll('.info-row').forEach(function(row) {
+            var label = row.querySelector('.info-label');
+            var value = row.querySelector('.info-value');
+            if (label && value) {
+              blocks.push({ type: 'detailRow', label: label.textContent.trim(), value: value.textContent.trim() });
+            }
+          });
+          card.querySelectorAll('.tips-title').forEach(function(t) {
+            blocks.push({ type: 'desc', text: '💡 ' + t.textContent.trim() });
+          });
+          card.querySelectorAll('.deduction-tips li').forEach(function(li) {
+            blocks.push({ type: 'tip', text: '· ' + li.textContent.trim() });
+          });
+        });
+
+        // 风险提示
+        section.querySelectorAll('.error-group-title, .warning-item-title').forEach(function(el) {
+          blocks.push({ type: 'desc', text: el.textContent.trim(), color: '#fa531c' });
+        });
+        section.querySelectorAll('.error-item .error-message, .warning-item .warning-message').forEach(function(el) {
+          blocks.push({ type: 'tip', text: el.textContent.trim(), color: '#fa531c' });
+        });
+
+        // 操作指引
+        section.querySelectorAll('.bonus-operation p, .operation-label').forEach(function(el) {
+          blocks.push({ type: 'desc', text: el.textContent.trim() });
+        });
+      });
+
+      // 计算总高度
+      var totalHeight = padding * 2;
+      blocks.forEach(function(b) {
+        switch(b.type) {
+          case 'title': totalHeight += 28; break;
+          case 'subtitle': totalHeight += 18; break;
+          case 'sectionTitle': totalHeight += 26; break;
+          case 'gap': totalHeight += b.height; break;
+          case 'card': totalHeight += 50; break;
+          case 'tableRow': totalHeight += 22; break;
+          case 'detailRow': totalHeight += 22; break;
+          case 'bonusTitle': totalHeight += 24; break;
+          case 'highlight': totalHeight += 30; break;
+          case 'cardHeader': totalHeight += 24; break;
+          case 'desc': totalHeight += 20; break;
+          case 'tip': totalHeight += 20; break;
+          case 'text': totalHeight += 18; break;
+          default: totalHeight += 20;
+        }
+      });
+
+      // 创建Canvas
+      var canvas = document.createElement('canvas');
+      var scale = 2; // 2倍清晰度
+      canvas.width = canvasWidth * scale;
+      canvas.height = totalHeight * scale;
+      var ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+
+      // 绘制背景
+      ctx.fillStyle = '#f5f6fa';
+      ctx.fillRect(0, 0, canvasWidth, totalHeight);
+
+      y = padding;
+      var maxWidth = canvasWidth - padding * 2;
+
+      // 逐块绘制
+      blocks.forEach(function(b) {
+        switch(b.type) {
+          case 'title':
+            ctx.fillStyle = '#1677ff';
+            ctx.font = 'bold 17px sans-serif';
+            ctx.fillText(b.text, padding, y);
+            y += 28;
+            break;
+          case 'subtitle':
+            ctx.fillStyle = '#999';
+            ctx.font = '12px sans-serif';
+            ctx.fillText(b.text, padding, y);
+            y += 18;
+            break;
+          case 'sectionTitle':
+            // 蓝色背景条
+            ctx.fillStyle = '#e6f4ff';
+            ctx.fillRect(padding - 8, y - 16, canvasWidth - padding * 2 + 16, 24);
+            ctx.fillStyle = '#1677ff';
+            ctx.font = 'bold 15px sans-serif';
+            ctx.fillText(b.text, padding, y);
+            y += 26;
+            break;
+          case 'gap':
+            y += b.height;
+            break;
+          case 'card':
+            // 卡片背景
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(padding, y - 14, maxWidth, 44);
+            ctx.strokeStyle = '#e8e8e8';
+            ctx.strokeRect(padding, y - 14, maxWidth, 44);
+            ctx.fillStyle = '#1677ff';
+            ctx.font = 'bold 18px sans-serif';
+            ctx.fillText(b.value, padding + 10, y + 8);
+            ctx.fillStyle = '#666';
+            ctx.font = '12px sans-serif';
+            ctx.fillText(b.label, padding + 10, y + 24);
+            y += 50;
+            break;
+          case 'tableRow':
+            if (b.bold) {
+              ctx.fillStyle = '#f0f5ff';
+              ctx.fillRect(padding, y - 14, maxWidth, 22);
+            }
+            ctx.fillStyle = b.bold ? '#1677ff' : '#333';
+            ctx.font = b.bold ? 'bold 13px sans-serif' : '13px sans-serif';
+            ctx.fillText(b.name, padding, y);
+            if (b.monthly) ctx.fillText(b.monthly, padding + 130, y);
+            ctx.fillStyle = b.bold ? '#1677ff' : '#000';
+            ctx.font = b.bold ? 'bold 13px sans-serif' : '13px sans-serif';
+            ctx.fillText(b.annual, padding + 200, y);
+            if (b.status) {
+              ctx.fillStyle = '#52c41a';
+              ctx.font = '11px sans-serif';
+              ctx.fillText(b.status, padding + 290, y);
+            }
+            y += 22;
+            break;
+          case 'detailRow':
+            ctx.fillStyle = b.bold ? '#1677ff' : '#333';
+            ctx.font = b.bold ? 'bold 13px sans-serif' : '13px sans-serif';
+            ctx.fillText(b.label, padding, y);
+            // 右对齐金额
+            ctx.textAlign = 'right';
+            ctx.fillText(b.value, canvasWidth - padding, y);
+            ctx.textAlign = 'left';
+            y += 22;
+            break;
+          case 'bonusTitle':
+            ctx.fillStyle = '#722ed1';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText(b.text, padding, y);
+            y += 24;
+            break;
+          case 'highlight':
+            ctx.fillStyle = '#f6ffed';
+            ctx.fillRect(padding, y - 14, maxWidth, 26);
+            ctx.fillStyle = '#52c41a';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.fillText(b.text, padding + 5, y);
+            y += 30;
+            break;
+          case 'cardHeader':
+            ctx.fillStyle = '#262626';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText(b.title, padding, y);
+            if (b.badge) {
+              ctx.fillStyle = '#1677ff';
+              ctx.font = 'bold 13px sans-serif';
+              ctx.textAlign = 'right';
+              ctx.fillText(b.badge, canvasWidth - padding, y);
+              ctx.textAlign = 'left';
+            }
+            y += 24;
+            break;
+          case 'desc':
+            ctx.fillStyle = b.color || '#666';
+            ctx.font = '12px sans-serif';
+            // 自动换行
+            var words = b.text;
+            while (words.length > 0) {
+              var line = words.substring(0, 38);
+              ctx.fillText(line, padding, y);
+              y += 18;
+              words = words.substring(38);
+            }
+            break;
+          case 'tip':
+            ctx.fillStyle = b.color || '#888';
+            ctx.font = '12px sans-serif';
+            var tipWords = b.text;
+            while (tipWords.length > 0) {
+              var tipLine = tipWords.substring(0, 36);
+              ctx.fillText(tipLine, padding + 4, y);
+              y += 18;
+              tipWords = tipWords.substring(36);
+            }
+            break;
+          case 'text':
+            ctx.fillStyle = b.color || '#333';
+            ctx.font = '13px sans-serif';
+            ctx.fillText(b.text, padding, y);
+            y += 18;
+            break;
+        }
+      });
+
+      // 转为图片
+      var dataUrl = canvas.toDataURL('image/png');
+
+      // 在新窗口打开图片，用户可以长按保存到相册
+      var imgWindow = window.open('');
+      if (imgWindow) {
+        imgWindow.document.write(
+          '<html><head><title>个税填报指引报告</title>'
+          + '<meta name="viewport" content="width=device-width, initial-scale=1">'
+          + '<style>'
+          + 'body{margin:0;padding:0;background:#000;display:flex;flex-direction:column;align-items:center;min-height:100vh}'
+          + 'img{max-width:100%;height:auto;margin-top:10px}'
+          + '.tip{color:#fff;font-size:14px;padding:12px;text-align:center;background:#1677ff;width:100%;box-sizing:border-box;position:sticky;top:0}'
+          + '</style></head><body>'
+          + '<div class="tip">👇 长按图片保存到相册</div>'
+          + '<img src="' + dataUrl + '" />'
+          + '</body></html>'
+        );
+        imgWindow.document.close();
+        App.showToast('图片已生成，长按保存到相册');
+      } else {
+        // 弹窗被拦截，降级为直接下载
+        var link = document.createElement('a');
+        link.download = '个税填报指引报告.png';
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        App.showToast('图片已下载');
+      }
+    } catch(e) {
+      console.error('Canvas render error:', e);
+      App.showToast('图片生成失败，请尝试复制文本');
+    }
+  },
+
+  // 分享报告（调用系统分享）
+  shareReport() {
+    var target = document.getElementById('reportContent');
+    if (!target) {
+      App.showToast('未找到报告内容');
+      return;
+    }
+
+    // 提取报告纯文本摘要
+    var lines = [];
+    var header = target.querySelector('.report-header h1');
+    if (header) lines.push(header.textContent.trim());
+
+    target.querySelectorAll('.summary-card').forEach(function(card) {
+      var val = card.querySelector('.card-value');
+      var label = card.querySelector('.card-label');
+      if (val && label) lines.push(label.textContent.trim() + '：' + val.textContent.trim());
+    });
+
+    target.querySelectorAll('.tax-detail-row').forEach(function(row) {
+      var spans = row.querySelectorAll('span');
+      if (spans.length >= 2) {
+        lines.push(spans[0].textContent.trim() + '：' + spans[1].textContent.trim());
+      }
+    });
+
+    target.querySelectorAll('.deduction-card .deduction-header h3').forEach(function(h3) {
+      lines.push('✓ ' + h3.textContent.trim());
+    });
+
+    target.querySelectorAll('.bonus-savings').forEach(function(el) {
+      var span = el.querySelector('span');
+      var strong = el.querySelector('strong');
+      if (span && strong) lines.push(span.textContent.trim() + strong.textContent.trim());
+    });
+
+    lines.push('');
+    lines.push('—— 由「个税申报助手」生成');
+
+    var shareText = lines.join('\n');
+    var shareData = {
+      title: '个税填报指引报告',
+      text: shareText,
+      url: location.href
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).then(function() {
+        App.showToast('分享成功');
+      }).catch(function(err) {
+        if (err.name !== 'AbortError') {
+          // 分享失败，降级为复制
+          Report.fallbackShare(shareText);
+        }
+      });
+    } else if (navigator.clipboard) {
+      Report.fallbackShare(shareText);
+    } else {
+      // 最终降级：选中文本
+      Report.fallbackShare(shareText);
+    }
+  },
+
+  // 降级分享：复制到剪贴板
+  fallbackShare(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        App.showToast('报告内容已复制，可粘贴到微信/QQ分享');
+      }).catch(function() {
+        Report.fallbackShareLegacy(text);
+      });
+    } else {
+      Report.fallbackShareLegacy(text);
+    }
+  },
+
+  fallbackShareLegacy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      App.showToast('报告内容已复制，可粘贴分享');
+    } catch(e) {
+      App.showToast('复制失败，请手动选择文本');
+    }
+    document.body.removeChild(ta);
+  },
+
+  // 导出为文本（复制到剪贴板）
+  exportAsText() {
+    const target = document.getElementById('reportContent');
+    if (!target) {
+      App.showToast('未找到报告内容');
+      return;
+    }
+
+    let text = '========== 个税填报指引报告 ==========\n';
+    text += '生成日期：' + new Date().toLocaleDateString('zh-CN') + '\n\n';
+
+    // 提取汇总表格
+    target.querySelectorAll('.report-section').forEach(function(section) {
+      const title = section.querySelector('.report-section-title');
+      if (title) text += '\n【' + title.innerText + '】\n';
+
+      // 表格
+      section.querySelectorAll('.report-table').forEach(function(table) {
+        table.querySelectorAll('tr').forEach(function(row) {
+          const cells = row.querySelectorAll('th,td');
+          const rowData = [];
+          cells.forEach(function(cell) {
+            rowData.push(cell.innerText.trim());
+          });
+          if (rowData.length > 0) text += rowData.join(' | ') + '\n';
+        });
+      });
+
+      // 汇总卡片
+      section.querySelectorAll('.summary-card').forEach(function(card) {
+        const val = card.querySelector('.card-value');
+        const label = card.querySelector('.card-label');
+        if (val && label) text += label.innerText + ': ' + val.innerText + '\n';
+      });
+
+      // 税额明细
+      section.querySelectorAll('.tax-detail-row').forEach(function(row) {
+        const spans = row.querySelectorAll('span');
+        if (spans.length >= 2) text += spans[0].innerText + ': ' + spans[1].innerText + '\n';
+      });
+
+      // 扣除项详情
+      section.querySelectorAll('.deduction-card').forEach(function(card) {
+        const h3 = card.querySelector('h3');
+        if (h3) text += '\n■ ' + h3.innerText + '\n';
+        card.querySelectorAll('.info-row').forEach(function(row) {
+          const label = row.querySelector('.info-label');
+          const value = row.querySelector('.info-value');
+          if (label && value) text += '  ' + label.innerText + ': ' + value.innerText + '\n';
+        });
+      });
+
+      // 年终奖对比
+      section.querySelectorAll('.bonus-card').forEach(function(card) {
+        const label = card.querySelector('.bonus-label');
+        const total = card.querySelector('.bonus-total');
+        if (label) text += '\n' + label.innerText + '\n';
+        card.querySelectorAll('.bonus-detail-row').forEach(function(row) {
+          const spans = row.querySelectorAll('span');
+          if (spans.length >= 2) text += '  ' + spans[0].innerText + ': ' + spans[1].innerText + '\n';
+        });
+        if (total) text += '  总税额: ' + total.innerText + '\n';
+      });
+
+      // 风险提示
+      section.querySelectorAll('.error-item').forEach(function(item) {
+        const title = item.querySelector('.error-title');
+        const msg = item.querySelector('.error-message');
+        const sol = item.querySelector('.error-solution');
+        if (title) text += '\n⚠ ' + title.innerText + '\n';
+        if (msg) text += '  ' + msg.innerText + '\n';
+        if (sol) text += '  ' + sol.innerText + '\n';
+      });
+    });
+
+    text += '\n========== 政策依据 ==========\n';
+    text += '《个人所得税专项附加扣除暂行办法》\n';
+    text += '全年一次性奖金政策延续至2027年12月31日\n';
+    text += '如有疑问请咨询税务机关：12366\n';
+
+    // 复制到剪贴板
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        App.showToast('报告内容已复制到剪贴板');
+      }).catch(function() {
+        Report.downloadText(text);
+      });
+    } else {
+      Report.downloadText(text);
+    }
+  },
+
+  // 降级：下载文本文件
+  downloadText(text) {
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const link = document.createElement('a');
+    link.download = '个税填报指引报告_' + new Date().toLocaleDateString('zh-CN').replace(/\//g, '') + '.txt';
+    link.href = URL.createObjectURL(blob);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    App.showToast('报告已下载为文本文件');
+  }
+};
+
+
+/**
+ * app.js - 主控制器
+ * 页面路由、状态管理、应用初始化
+ */
+
+const App = {
+  currentPage: 'home',
+  dataLoaded: false,
+
+  async init() {
+    // 5秒强制超时：即使有任何错误，loading overlay 也必须消失
+    const forceTimeout = setTimeout(() => {
+      console.warn('App init force timeout - hiding loading overlay');
+      this.hideLoading();
+      if (!this.dataLoaded) {
+        this.renderHome();
+      }
+    }, 5000);
+
+    try {
+      // 注册内联 Service Worker（用于PWA离线缓存，file:// 协议跳过）
+      if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+        var swCode = 'var CACHE_NAME="tax-assistant-v1";'
+          + 'self.addEventListener("install",function(e){self.skipWaiting();});'
+          + 'self.addEventListener("activate",function(e){e.waitUntil(self.clients.claim());});'
+          + 'self.addEventListener("fetch",function(e){'
+          + 'if(e.request.method!=="GET")return;'
+          + 'e.respondWith(caches.match(e.request).then(function(r){'
+          + 'return r||fetch(e.request).then(function(resp){'
+          + 'var clone=resp.clone();caches.open(CACHE_NAME).then(function(c){c.put(e.request,clone);});return resp;'
+          + '}).catch(function(){return r;});}));});';
+        var swBlob = new Blob([swCode], { type: 'application/javascript' });
+        var swUrl = URL.createObjectURL(swBlob);
+        navigator.serviceWorker.register(swUrl).catch(function(err) {
+          console.warn('SW registration failed:', err);
+        });
+      }
+
+      // 初始化存储（IndexedDB 或 localStorage 降级）
+      await Storage.init();
+
+      // 初始化各模块（数据已内嵌在 TaxData 中，无需 fetch）
+      await Promise.all([
+        Survey.init(),
+        Calculator.init(),
+        RulesEngine.init(),
+        ErrorChecker.init()
+      ]);
+
+      this.dataLoaded = true;
+      this.hideLoading();
+      clearTimeout(forceTimeout);
+      this.renderHome();
+
+      // 绑定导航事件
+      this.bindNavigation();
+      this.bindHeaderBack();
+      this.bindPWAInstall();
+    } catch (err) {
+      console.error('Init error:', err);
+      this.hideLoading();
+      clearTimeout(forceTimeout);
+      this.showError(err);
+    }
+  },
+
+  // PWA 安装引导
+  deferredPrompt: null,
+
+  bindPWAInstall() {
+    var self = this;
+    // 监听安装提示事件（Chrome/Edge/三星浏览器）
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      self.deferredPrompt = e;
+      // 显示安装按钮
+      var container = document.getElementById('installBtnContainer');
+      if (container) container.style.display = 'block';
+    });
+
+    // 监听已安装事件
+    window.addEventListener('appinstalled', function() {
+      self.deferredPrompt = null;
+      var container = document.getElementById('installBtnContainer');
+      if (container) container.style.display = 'none';
+      self.showToast('已添加到桌面');
+    });
+  },
+
+  triggerInstall() {
+    if (this.deferredPrompt) {
+      this.deferredPrompt.prompt();
+      var self = this;
+      this.deferredPrompt.userChoice.then(function(choice) {
+        if (choice.outcome === 'accepted') {
+          self.showToast('正在安装到桌面...');
+        }
+        self.deferredPrompt = null;
+        var container = document.getElementById('installBtnContainer');
+        if (container) container.style.display = 'none';
+      });
+    } else {
+      // 不支持自动安装，显示手动操作引导
+      var ua = navigator.userAgent.toLowerCase();
+      var isIOS = /iphone|ipad|ipod/.test(ua);
+      var isAndroid = /android/.test(ua);
+      var hint = '';
+      if (isIOS) {
+        hint = '请点击浏览器底部的「分享」按钮，然后选择「添加到主屏幕」';
+      } else if (isAndroid) {
+        hint = '请点击浏览器右上角「⋮」菜单，然后选择「添加到主屏幕」或「安装应用」';
+      } else {
+        hint = '请点击浏览器地址栏右侧的「安装」图标，或通过菜单「安装此应用」';
+      }
+      this.showToast(hint, 4000);
+    }
+  },
+
+  hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'none';
+  },
+
+  showError(err) {
+    const content = document.getElementById('appContent');
+    if (content) {
+      content.innerHTML = `
+        <div style="padding: 40px 20px; text-align: center;">
+          <div style="font-size: 3rem; margin-bottom: 16px;">⚠️</div>
+          <h2 style="font-size: 1.1rem; color: #1a1a1a; margin-bottom: 8px;">加载失败</h2>
+          <p style="font-size: 0.85rem; color: #999; margin-bottom: 20px;">
+            ${err && err.message ? err.message : '未知错误'}
+          </p>
+          <button class="btn btn-primary" onclick="location.reload()">重新加载</button>
+        </div>
+      `;
+    }
+  },
+
+  // ===== 导航 =====
+
+  bindNavigation() {
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const page = btn.dataset.page;
+        this.navigateTo(page);
+      });
+    });
+  },
+
+  bindHeaderBack() {
+    const backBtn = document.getElementById('btnBack');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => this.goBack());
+    }
+  },
+
+  navigateTo(page) {
+    this.currentPage = page;
+    document.querySelectorAll('.nav-item').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.page === page);
+    });
+    document.getElementById('appNav').style.display = 'flex';
+
+    switch (page) {
+      case 'home': this.renderHome(); break;
+      case 'calculator': this.renderCalculator(); break;
+      case 'policy': this.renderPolicy(); break;
+    }
+  },
+
+  goBack() {
+    if (this.currentPage === 'survey' || this.currentPage === 'report') {
+      this.navigateTo('home');
+    } else {
+      this.navigateTo('home');
+    }
+  },
+
+  goBackHome() {
+    Survey.reset();
+    this.navigateTo('home');
+  },
+
+  // ===== 首页 =====
+
+  renderHome() {
+    document.getElementById('headerTitle').textContent = '个税填报助手';
+    document.getElementById('btnBack').style.display = 'none';
+    document.getElementById('appNav').style.display = 'flex';
+
+    const content = document.getElementById('appContent');
+    content.innerHTML = `
+      <div class="home-container">
+        <div class="hero-section">
+          <div class="hero-icon">¥</div>
+          <h1 class="hero-title">个税填报助手</h1>
+          <p class="hero-subtitle">智能匹配扣除项 · 正确填报不踩坑</p>
+        </div>
+
+        <div class="home-actions">
+          <button class="action-card primary" onclick="App.startSurvey()">
+            <div class="action-icon">📝</div>
+            <div class="action-text">
+              <h3>开始填报指引</h3>
+              <p>回答几个问题，智能匹配可享扣除项</p>
+            </div>
+            <svg class="action-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+
+          <button class="action-card" onclick="App.navigateTo('calculator')">
+            <div class="action-icon">🧮</div>
+            <div class="action-text">
+              <h3>年终奖对比计算器</h3>
+              <p>单独计税 vs 合并计税，一键对比</p>
+            </div>
+            <svg class="action-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+
+          <button class="action-card" onclick="App.navigateTo('policy')">
+            <div class="action-icon">📖</div>
+            <div class="action-text">
+              <h3>政策速查</h3>
+              <p>7项专项附加扣除标准一览</p>
+            </div>
+            <svg class="action-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <div class="home-features">
+          <div class="feature-item">
+            <span class="feature-check">✓</span>
+            <span>7项扣除智能匹配</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-check">✓</span>
+            <span>年终奖双方案对比</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-check">✓</span>
+            <span>14类常见错误检测</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-check">✓</span>
+            <span>数据本地存储不上传</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-check">✓</span>
+            <span>离线可用</span>
+          </div>
+        </div>
+
+        <div id="installBtnContainer" style="display:none;">
+          <button class="action-card install-btn" id="installBtn" onclick="App.triggerInstall()">
+            <div class="action-icon">📱</div>
+            <div class="action-text">
+              <h3>添加到手机桌面</h3>
+              <p>一键安装，下次直接从桌面打开</p>
+            </div>
+            <svg class="action-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <div class="home-policy-note">
+          <p>📅 每年3月1日 - 6月30日 为个人所得税综合所得年度汇算清缴期</p>
+        </div>
+      </div>
+    `;
+  },
+
+  // ===== 问卷 =====
+
+  startSurvey() {
+    Survey.reset();
+    this.renderSurvey();
+  },
+
+  renderSurvey() {
+    this.currentPage = 'survey';
+    document.getElementById('headerTitle').textContent = '填报指引问卷';
+    document.getElementById('btnBack').style.display = 'block';
+    document.getElementById('appNav').style.display = 'none';
+    Survey.render(document.getElementById('appContent'));
+  },
+
+  async processSurveyResult(answers) {
+    this.showToast('正在分析您的信息...');
+
+    try {
+      // 保存到IndexedDB
+      await Storage.save({ profile: answers, type: 'survey' });
+
+      // 规则匹配
+      const matchResult = RulesEngine.match(answers);
+
+      // 其他扣除
+      const otherDeduction = Report.calculateOtherDeductions(answers);
+
+      // 年终奖计算
+      const bonusResult = Calculator.compareBonusTax(
+        answers.annual_income || 0,
+        answers.annual_bonus || 0,
+        answers.social_insurance || 0,
+        matchResult.totalAnnual,
+        otherDeduction
+      );
+
+      // 易错点检测
+      const errorResult = ErrorChecker.check(answers);
+
+      // 生成报告
+      this.renderReport(matchResult, bonusResult, errorResult, answers);
+    } catch (err) {
+      console.error('Process error:', err);
+      this.showToast('分析失败，请重试');
+    }
+  },
+
+  renderReport(matchResult, bonusResult, errorResult, profile) {
+    this.currentPage = 'report';
+    document.getElementById('headerTitle').textContent = '填报指引报告';
+    document.getElementById('btnBack').style.display = 'block';
+    document.getElementById('appNav').style.display = 'none';
+
+    const content = document.getElementById('appContent');
+    content.innerHTML = Report.generate(matchResult, bonusResult, errorResult, profile);
+    content.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  // ===== 计算器页面 =====
+
+  renderCalculator() {
+    document.getElementById('headerTitle').textContent = '年终奖计税对比器';
+    document.getElementById('btnBack').style.display = 'none';
+    document.getElementById('appNav').style.display = 'flex';
+
+    const content = document.getElementById('appContent');
+    content.innerHTML = `
+      <div class="calculator-page">
+        <div class="calc-intro">
+          <h2>年终奖计税对比</h2>
+          <p>输入您的收入和年终奖，对比两种计税方式哪种更省税</p>
+        </div>
+
+        <div class="calc-form">
+          <div class="calc-input-group">
+            <label>年度综合所得（不含年终奖）</label>
+            <div class="input-with-prefix">
+              <input type="number" id="calcIncome" placeholder="如：120000" inputmode="numeric">
+              <span class="prefix">¥</span>
+            </div>
+          </div>
+
+          <div class="calc-input-group">
+            <label>年终奖金额</label>
+            <div class="input-with-prefix">
+              <input type="number" id="calcBonus" placeholder="如：50000" inputmode="numeric">
+              <span class="prefix">¥</span>
+            </div>
+          </div>
+
+          <div class="calc-input-group">
+            <label>三险一金（年度个人部分）</label>
+            <div class="input-with-prefix">
+              <input type="number" id="calcSocial" placeholder="如：18000" inputmode="numeric" value="0">
+              <span class="prefix">¥</span>
+            </div>
+          </div>
+
+          <div class="calc-input-group">
+            <label>专项附加扣除（年度总额）</label>
+            <div class="input-with-prefix">
+              <input type="number" id="calcDeduction" placeholder="如：36000" inputmode="numeric" value="0">
+              <span class="prefix">¥</span>
+            </div>
+            <p class="calc-hint">如不确定，可先完成「开始填报指引」获取准确金额</p>
+          </div>
+
+          <div class="calc-input-group">
+            <label>其他扣除（年金/健康险/养老金等）</label>
+            <div class="input-with-prefix">
+              <input type="number" id="calcOther" placeholder="如：12000" inputmode="numeric" value="0">
+              <span class="prefix">¥</span>
+            </div>
+            <p class="calc-hint">企业年金+商业健康险（限2400）+个人养老金（限12000）等</p>
+          </div>
+
+          <button class="btn btn-primary btn-lg btn-block" onclick="App.calculateBonus()">开始对比</button>
+        </div>
+
+        <div id="calcResult" class="calc-result"></div>
+      </div>
+    `;
+  },
+
+  calculateBonus() {
+    const income = Number(document.getElementById('calcIncome').value) || 0;
+    const bonus = Number(document.getElementById('calcBonus').value) || 0;
+    const social = Number(document.getElementById('calcSocial').value) || 0;
+    const deduction = Number(document.getElementById('calcDeduction').value) || 0;
+    const other = Number(document.getElementById('calcOther')?.value) || 0;
+
+    if (bonus <= 0) {
+      this.showToast('请输入年终奖金额');
+      return;
+    }
+
+    const result = Calculator.compareBonusTax(income, bonus, social, deduction, other);
+    const profile = { annual_income: income, annual_bonus: bonus, social_insurance: social };
+    const matchResult = { totalAnnual: deduction, deductions: [], eligibleCount: 0, totalMonthly: 0 };
+    const errorResult = { hasIssues: false, errors: [], warnings: [], all: [] };
+
+    // 只渲染年终奖对比部分
+    const resultEl = document.getElementById('calcResult');
+    resultEl.innerHTML = Report.renderBonusComparison(result, profile);
+    resultEl.scrollIntoView({ behavior: 'smooth' });
+  },
+
+  // ===== 政策查询页面 =====
+
+  renderPolicy() {
+    document.getElementById('headerTitle').textContent = '专项附加扣除政策';
+    document.getElementById('btnBack').style.display = 'none';
+    document.getElementById('appNav').style.display = 'flex';
+
+    const content = document.getElementById('appContent');
+    const deductions = RulesEngine.deductionsData || [];
+    content.innerHTML = `
+      <div class="policy-page">
+        <div class="policy-intro">
+          <h2>7项专项附加扣除标准</h2>
+          <p>政策延续至2027年12月31日</p>
+        </div>
+        ${deductions.map(d => `
+          <div class="policy-card">
+            <div class="policy-card-header">
+              <h3>${d.title}</h3>
+              ${d.monthlyAmount ? `<span class="policy-amount">${Calculator.formatMoney(d.monthlyAmount)}/月</span>` : ''}
+              ${d.annualLimit ? `<span class="policy-amount">限额${Calculator.formatMoney(d.annualLimit)}/年</span>` : ''}
+            </div>
+            <p class="policy-desc">${d.description}</p>
+            <div class="policy-details">
+              <div class="policy-detail-row">
+                <span class="detail-label">适用条件</span>
+                <ul>${d.conditions.map(c => `<li>${c}</li>`).join('')}</ul>
+              </div>
+              <div class="policy-detail-row">
+                <span class="detail-label">所需材料</span>
+                <span>${(d.documents || []).join('、')}</span>
+              </div>
+              <div class="policy-detail-row">
+                <span class="detail-label">APP操作</span>
+                <span>${d.appPath}</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+
+        <div class="policy-notice">
+          <h3>全年一次性奖金政策</h3>
+          <p>2027年12月31日前，居民个人取得全年一次性奖金，可选择单独计税或并入综合所得计税。一个纳税年度内仅能享受一次单独计税。</p>
+        </div>
+      </div>
+    `;
+  },
+
+  // ===== 工具方法 =====
+
+  showToast(message, duration) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.className = 'toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => toast.classList.remove('show'), duration || 3000);
+  }
+};
+
+// 启动应用
+document.addEventListener('DOMContentLoaded', () => {
+  App.init();
+});
+
+
+
+</script>
+</body>
+</html>
